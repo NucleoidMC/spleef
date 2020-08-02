@@ -13,11 +13,9 @@ import net.gegy1000.plasmid.game.map.GameMap;
 import net.gegy1000.plasmid.game.rule.GameRule;
 import net.gegy1000.plasmid.game.rule.RuleResult;
 import net.gegy1000.plasmid.util.ItemStackBuilder;
-import net.minecraft.block.Blocks;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -40,6 +38,9 @@ public final class SpleefActive {
 
     private final SpleefSpawnLogic spawnLogic;
 
+    private final SpleefLevels levels;
+    private long nextLevelDropTime = -1;
+
     private long closeTime = -1;
 
     private SpleefActive(GameMap map, SpleefConfig config, Set<UUID> participants) {
@@ -48,6 +49,8 @@ public final class SpleefActive {
         this.participants = participants;
 
         this.spawnLogic = new SpleefSpawnLogic(map);
+
+        this.levels = SpleefLevels.create(map);
     }
 
     public static Game open(GameMap map, SpleefConfig config, Set<UUID> participants) {
@@ -101,30 +104,43 @@ public final class SpleefActive {
         long time = game.getWorld().getTime();
 
         if (this.closeTime > 0) {
-            if (time >= this.closeTime) {
-                game.close();
-            }
-
+            this.tickClosing(game, time);
             return;
         }
 
-        WinResult result = this.checkWinResult(game);
-
-        if (result.isWin()) {
-            ServerPlayerEntity winningPlayer = result.getWinningPlayer();
-
-            Text message;
-            if (winningPlayer != null) {
-                message = winningPlayer.getDisplayName().shallowCopy().append(" has won the game!").formatted(Formatting.GOLD);
-            } else {
-                message = new LiteralText("The game ended, but nobody won!").formatted(Formatting.GOLD);
+        if (time > this.nextLevelDropTime) {
+            if (this.nextLevelDropTime != -1) {
+                this.levels.tryDropLevel(this.config);
             }
 
-            this.broadcastMessage(game, message);
-            this.broadcastSound(game, SoundEvents.ENTITY_VILLAGER_YES);
+            this.nextLevelDropTime = time + this.config.getLevelBreakInterval();
+        }
 
+        WinResult result = this.checkWinResult(game);
+        if (result.isWin()) {
+            this.broadcastWin(game, result);
             this.closeTime = time + 20 * 5;
         }
+    }
+
+    private void tickClosing(Game game, long time) {
+        if (time >= this.closeTime) {
+            game.close();
+        }
+    }
+
+    private void broadcastWin(Game game, WinResult result) {
+        ServerPlayerEntity winningPlayer = result.getWinningPlayer();
+
+        Text message;
+        if (winningPlayer != null) {
+            message = winningPlayer.getDisplayName().shallowCopy().append(" has won the game!").formatted(Formatting.GOLD);
+        } else {
+            message = new LiteralText("The game ended, but nobody won!").formatted(Formatting.GOLD);
+        }
+
+        this.broadcastMessage(game, message);
+        this.broadcastSound(game, SoundEvents.ENTITY_VILLAGER_YES);
     }
 
     private boolean onPlayerDamage(Game game, ServerPlayerEntity player, DamageSource source, float amount) {
@@ -143,9 +159,10 @@ public final class SpleefActive {
         this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
         this.spawnLogic.spawnPlayer(player);
 
-        ItemStack shovel = ItemStackBuilder.of(Items.DIAMOND_SHOVEL)
+        ItemStack shovel = ItemStackBuilder.of(this.config.getTool())
+                .setUnbreakable()
                 .addEnchantment(Enchantments.EFFICIENCY, 2)
-                .addCanDestroy(Blocks.SNOW_BLOCK)
+                .addCanDestroy(this.config.getFloor().getBlock())
                 .build();
 
         player.inventory.insertStack(shovel);
@@ -188,6 +205,11 @@ public final class SpleefActive {
     }
 
     private WinResult checkWinResult(Game game) {
+        // for testing purposes: don't end the game if we only ever had one participant
+        if (this.participants.size() <= 1) {
+            return WinResult.no();
+        }
+
         ServerWorld world = game.getWorld();
 
         ServerPlayerEntity winningPlayer = null;

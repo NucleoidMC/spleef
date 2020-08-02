@@ -46,41 +46,50 @@ public final class SpleefMapProvider implements MapProvider<SpleefConfig> {
         GameMapBuilder builder = GameMapBuilder.open(world, origin, bounds);
 
         return CompletableFuture.supplyAsync(() -> {
-            this.buildMap(builder);
+            this.buildMap(builder, config);
             return builder.build();
         }, world.getServer());
     }
 
-    private void buildMap(GameMapBuilder builder) {
-        BlockState wall = Blocks.STONE_BRICKS.getDefaultState();
-        BlockState snow = Blocks.SNOW_BLOCK.getDefaultState();
-        BlockState lava = Blocks.LAVA.getDefaultState();
-
-        this.drawCircle(builder, this.radius, 0, 0, Brush.fill(wall));
-
-        this.drawCircle(builder, this.radius, 1, 1, new Brush(wall, lava));
-        this.drawCircle(builder, this.radius, 1, this.levelHeight + 1, Brush.outline(wall));
-
-        for (int level = 0; level <= this.levels; level++) {
-            BlockState floor;
-            if (level == 0) {
-                floor = lava;
-            } else {
-                floor = snow;
-            }
-
-            int y = level * this.levelHeight + 1;
-            this.drawCircle(builder, this.radius, y, y, new Brush(wall, floor));
-        }
-
-        // build the outer wall
-        this.drawCircle(builder, this.radius, 1, (this.levels + 1) * this.levelHeight, Brush.outline(wall));
+    private void buildMap(GameMapBuilder builder, SpleefConfig config) {
+        this.addBase(builder, config);
+        this.addLevels(builder, config);
+        this.addWall(builder, config);
 
         BlockPos spawnPos = new BlockPos(0, this.levels * this.levelHeight + 2, 0);
         builder.addRegion("spawn", new BlockBounds(spawnPos));
     }
 
-    private void drawCircle(GameMapBuilder builder, int radius, int minY, int maxY, Brush brush) {
+    private void addBase(GameMapBuilder builder, SpleefConfig config) {
+        BlockState wall = config.getWall();
+        BlockState lava = Blocks.LAVA.getDefaultState();
+
+        this.addCircle(builder, this.radius, 0, 0, Brush.fill(wall));
+        this.addCircle(builder, this.radius, 1, 1, new Brush(wall, lava));
+        this.addCircle(builder, this.radius, 1, this.levelHeight + 1, Brush.outline(wall));
+    }
+
+    private void addLevels(GameMapBuilder builder, SpleefConfig config) {
+        int radius = this.radius;
+        Brush brush = new Brush(config.getWall(), config.getFloor());
+
+        for (int level = 0; level < this.levels; level++) {
+            int y = (level + 1) * this.levelHeight + 1;
+            this.addCircle(builder, radius, y, y, brush);
+
+            builder.addRegion("level", new BlockBounds(
+                    new BlockPos(-radius, y, -radius),
+                    new BlockPos(radius, y, radius)
+            ));
+        }
+    }
+
+    private void addWall(GameMapBuilder builder, SpleefConfig config) {
+        Brush wallBrush = Brush.outline(config.getWall());
+        this.addCircle(builder, this.radius, 1, (this.levels + 1) * this.levelHeight, wallBrush);
+    }
+
+    private void addCircle(GameMapBuilder builder, int radius, int minY, int maxY, Brush brush) {
         BlockPos.Mutable mutablePos = new BlockPos.Mutable();
 
         int radius2 = radius * radius;
