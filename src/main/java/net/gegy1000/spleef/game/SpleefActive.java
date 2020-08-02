@@ -12,15 +12,12 @@ import net.gegy1000.plasmid.game.event.PlayerRejoinListener;
 import net.gegy1000.plasmid.game.map.GameMap;
 import net.gegy1000.plasmid.game.rule.GameRule;
 import net.gegy1000.plasmid.game.rule.RuleResult;
-import net.gegy1000.plasmid.util.ItemUtil;
+import net.gegy1000.plasmid.util.ItemStackBuilder;
 import net.minecraft.block.Blocks;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -29,8 +26,6 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.GameMode;
 
 import javax.annotation.Nullable;
@@ -148,18 +143,10 @@ public final class SpleefActive {
         this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
         this.spawnLogic.spawnPlayer(player);
 
-        // TODO: item builder in plasmid to support wide range of operations
-        ItemStack shovel = ItemUtil.unbreakable(new ItemStack(Items.DIAMOND_SHOVEL));
-        shovel.addEnchantment(Enchantments.EFFICIENCY, 2);
-
-        CompoundTag tag = shovel.getOrCreateTag();
-
-        ListTag canDestroy = new ListTag();
-
-        Identifier snowId = Registry.BLOCK.getId(Blocks.SNOW_BLOCK);
-        canDestroy.add(StringTag.of(snowId.toString()));
-
-        tag.put("CanDestroy", canDestroy);
+        ItemStack shovel = ItemStackBuilder.of(Items.DIAMOND_SHOVEL)
+                .addEnchantment(Enchantments.EFFICIENCY, 2)
+                .addCanDestroy(Blocks.SNOW_BLOCK)
+                .build();
 
         player.inventory.insertStack(shovel);
     }
