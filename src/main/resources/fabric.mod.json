@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "spleef",
+  "version": "${version}",
+  "name": "Spleef",
+  "description": "Spleef minigame implemented on Fabric",
+  "authors": ["gegy1000"],
+  "license": "LGPLv3",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["net.gegy1000.spleef.Spleef"]
+  },
+  "mixins": ["spleef.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.8.9",
+    "fabric": "*",
+    "minecraft": "1.16.x",
+    "plasmid": "0.1.x"
+  }
+}
