@@ -27,6 +27,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.world.GameMode;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -41,12 +42,15 @@ public final class SpleefActive {
     private final SpleefLevels levels;
     private long nextLevelDropTime = -1;
 
+    private final boolean ignoreWinState;
     private long closeTime = -1;
 
     private SpleefActive(GameMap map, SpleefConfig config, Set<UUID> participants) {
         this.map = map;
         this.config = config;
-        this.participants = participants;
+        this.participants = new HashSet<>(participants);
+
+        this.ignoreWinState = this.participants.size() <= 1;
 
         this.spawnLogic = new SpleefSpawnLogic(map);
 
@@ -101,7 +105,8 @@ public final class SpleefActive {
     }
 
     private void tick(Game game) {
-        long time = game.getWorld().getTime();
+        ServerWorld world = game.getWorld();
+        long time = world.getTime();
 
         if (this.closeTime > 0) {
             this.tickClosing(game, time);
@@ -114,6 +119,16 @@ public final class SpleefActive {
             }
 
             this.nextLevelDropTime = time + this.config.getLevelBreakInterval();
+        } else {
+            long ticksToDrop = this.nextLevelDropTime - time;
+            if (ticksToDrop % 20 == 0) {
+                long secondsToDrop = ticksToDrop / 20;
+                if (secondsToDrop == 10 || secondsToDrop < 3) {
+                    Text message = new LiteralText("Level dropping in " + secondsToDrop + "...")
+                            .formatted(Formatting.DARK_PURPLE, Formatting.BOLD);
+                    this.broadcastActionBar(game, message);
+                }
+            }
         }
 
         WinResult result = this.checkWinResult(game);
@@ -176,6 +191,8 @@ public final class SpleefActive {
         this.broadcastSound(game, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP);
 
         this.spawnSpectator(player);
+
+        this.participants.remove(player.getUuid());
     }
 
     private void spawnSpectator(ServerPlayerEntity player) {
@@ -185,28 +202,26 @@ public final class SpleefActive {
 
     // TODO: extract common broadcast utils into plasmid
     private void broadcastMessage(Game game, Text message) {
-        ServerWorld world = game.getWorld();
-        for (UUID playerId : game.getPlayers()) {
-            ServerPlayerEntity otherPlayer = (ServerPlayerEntity) world.getPlayerByUuid(playerId);
-            if (otherPlayer != null) {
-                otherPlayer.sendMessage(message, false);
-            }
-        }
+        game.onlinePlayers().forEach(player -> {
+            player.sendMessage(message, false);
+        });
+    }
+
+    private void broadcastActionBar(Game game, Text message) {
+        game.onlinePlayers().forEach(player -> {
+            player.sendMessage(message, true);
+        });
     }
 
     private void broadcastSound(Game game, SoundEvent sound) {
-        ServerWorld world = game.getWorld();
-        for (UUID playerId : game.getPlayers()) {
-            ServerPlayerEntity otherPlayer = (ServerPlayerEntity) world.getPlayerByUuid(playerId);
-            if (otherPlayer != null) {
-                otherPlayer.playSound(sound, SoundCategory.PLAYERS, 1.0F, 1.0F);
-            }
-        }
+        game.onlinePlayers().forEach(player -> {
+            player.playSound(sound, SoundCategory.PLAYERS, 1.0F, 1.0F);
+        });
     }
 
     private WinResult checkWinResult(Game game) {
         // for testing purposes: don't end the game if we only ever had one participant
-        if (this.participants.size() <= 1) {
+        if (this.ignoreWinState) {
             return WinResult.no();
         }
 

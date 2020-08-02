@@ -31,7 +31,7 @@ public final class SpleefLevels {
     }
 
     public void tryDropLevel(SpleefConfig config) {
-        if (this.topLevel <= 0) {
+        if (this.topLevel < 0) {
             return;
         }
 
