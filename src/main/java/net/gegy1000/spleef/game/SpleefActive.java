@@ -2,6 +2,7 @@ package net.gegy1000.spleef.game;
 
 import net.gegy1000.plasmid.game.Game;
 import net.gegy1000.plasmid.game.JoinResult;
+import net.gegy1000.plasmid.game.event.GameCloseListener;
 import net.gegy1000.plasmid.game.event.GameOpenListener;
 import net.gegy1000.plasmid.game.event.GameTickListener;
 import net.gegy1000.plasmid.game.event.OfferPlayerListener;
@@ -39,6 +40,7 @@ public final class SpleefActive {
 
     private final SpleefSpawnLogic spawnLogic;
 
+    private final SpleefTimerBar timerBar = new SpleefTimerBar();
     private final SpleefLevels levels;
     private long nextLevelDropTime = -1;
 
@@ -71,6 +73,7 @@ public final class SpleefActive {
         builder.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
 
         builder.on(GameOpenListener.EVENT, active::open);
+        builder.on(GameCloseListener.EVENT, active::close);
 
         builder.on(OfferPlayerListener.EVENT, (game, player) -> JoinResult.ok());
         builder.on(PlayerAddListener.EVENT, active::addPlayer);
@@ -94,10 +97,15 @@ public final class SpleefActive {
         }
     }
 
+    private void close(Game game) {
+        this.timerBar.close();
+    }
+
     private void addPlayer(Game game, ServerPlayerEntity player) {
         if (!this.participants.contains(player.getUuid())) {
             this.spawnSpectator(player);
         }
+        this.timerBar.addPlayer(player);
     }
 
     private void rejoinPlayer(Game game, ServerPlayerEntity player) {
@@ -122,12 +130,7 @@ public final class SpleefActive {
         } else {
             long ticksToDrop = this.nextLevelDropTime - time;
             if (ticksToDrop % 20 == 0) {
-                long secondsToDrop = ticksToDrop / 20;
-                if (secondsToDrop == 10 || secondsToDrop < 3) {
-                    Text message = new LiteralText("Level dropping in " + secondsToDrop + "...")
-                            .formatted(Formatting.DARK_PURPLE, Formatting.BOLD);
-                    this.broadcastActionBar(game, message);
-                }
+                this.timerBar.update(ticksToDrop, this.config.getLevelBreakInterval());
             }
         }
 
@@ -204,12 +207,6 @@ public final class SpleefActive {
     private void broadcastMessage(Game game, Text message) {
         game.onlinePlayers().forEach(player -> {
             player.sendMessage(message, false);
-        });
-    }
-
-    private void broadcastActionBar(Game game, Text message) {
-        game.onlinePlayers().forEach(player -> {
-            player.sendMessage(message, true);
         });
     }
 
