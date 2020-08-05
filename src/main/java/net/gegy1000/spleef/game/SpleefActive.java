@@ -14,6 +14,7 @@ import net.gegy1000.plasmid.game.map.GameMap;
 import net.gegy1000.plasmid.game.rule.GameRule;
 import net.gegy1000.plasmid.game.rule.RuleResult;
 import net.gegy1000.plasmid.util.ItemStackBuilder;
+import net.gegy1000.plasmid.util.PlayerRef;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
@@ -30,13 +31,11 @@ import net.minecraft.world.GameMode;
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 public final class SpleefActive {
-    private final GameMap map;
     private final SpleefConfig config;
 
-    private final Set<UUID> participants;
+    private final Set<PlayerRef> participants;
 
     private final SpleefSpawnLogic spawnLogic;
 
@@ -47,8 +46,7 @@ public final class SpleefActive {
     private final boolean ignoreWinState;
     private long closeTime = -1;
 
-    private SpleefActive(GameMap map, SpleefConfig config, Set<UUID> participants) {
-        this.map = map;
+    private SpleefActive(GameMap map, SpleefConfig config, Set<PlayerRef> participants) {
         this.config = config;
         this.participants = new HashSet<>(participants);
 
@@ -59,7 +57,7 @@ public final class SpleefActive {
         this.levels = SpleefLevels.create(map);
     }
 
-    public static Game open(GameMap map, SpleefConfig config, Set<UUID> participants) {
+    public static Game open(GameMap map, SpleefConfig config, Set<PlayerRef> participants) {
         SpleefActive active = new SpleefActive(map, config, participants);
 
         Game.Builder builder = Game.builder();
@@ -89,11 +87,8 @@ public final class SpleefActive {
 
     private void open(Game game) {
         ServerWorld world = game.getWorld();
-        for (UUID playerId : this.participants) {
-            ServerPlayerEntity player = (ServerPlayerEntity) world.getPlayerByUuid(playerId);
-            if (player != null) {
-                this.spawnParticipant(player);
-            }
+        for (PlayerRef ref : this.participants) {
+            ref.ifOnline(world, this::spawnParticipant);
         }
     }
 
@@ -102,7 +97,7 @@ public final class SpleefActive {
     }
 
     private void addPlayer(Game game, ServerPlayerEntity player) {
-        if (!this.participants.contains(player.getUuid())) {
+        if (!this.participants.contains(PlayerRef.of(player))) {
             this.spawnSpectator(player);
         }
         this.timerBar.addPlayer(player);
@@ -195,7 +190,7 @@ public final class SpleefActive {
 
         this.spawnSpectator(player);
 
-        this.participants.remove(player.getUuid());
+        this.participants.remove(PlayerRef.of(player));
     }
 
     private void spawnSpectator(ServerPlayerEntity player) {
@@ -226,8 +221,8 @@ public final class SpleefActive {
 
         ServerPlayerEntity winningPlayer = null;
 
-        for (UUID playerId : this.participants) {
-            ServerPlayerEntity player = (ServerPlayerEntity) world.getPlayerByUuid(playerId);
+        for (PlayerRef ref : this.participants) {
+            ServerPlayerEntity player = ref.getEntity(world);
             if (player != null) {
                 // we still have more than one player remaining
                 if (winningPlayer != null) {

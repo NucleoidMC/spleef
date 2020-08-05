@@ -63,7 +63,7 @@ public final class SpleefWaiting {
             return StartResult.notEnoughPlayers();
         }
 
-        Game active = SpleefActive.open(this.map, this.config, game.getPlayerIds());
+        Game active = SpleefActive.open(this.map, this.config, game.getPlayers());
         return StartResult.ok(active);
     }
 
