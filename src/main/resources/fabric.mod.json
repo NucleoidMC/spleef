@@ -10,6 +10,7 @@
   "entrypoints": {
     "main": ["net.gegy1000.spleef.Spleef"]
   },
+  "accessWidener": "spleef.accesswidener",
   "depends": {
     "fabricloader": ">=0.8.9",
     "fabric": "*",
