@@ -1,11 +1,6 @@
 package net.gegy1000.spleef.game;
 
-import it.unimi.dsi.fastutil.longs.Long2IntMap;
-import it.unimi.dsi.fastutil.longs.Long2IntMaps;
-import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import net.gegy1000.plasmid.game.Game;
-import net.gegy1000.plasmid.game.JoinResult;
+import net.gegy1000.plasmid.game.GameWorld;
 import net.gegy1000.plasmid.game.event.GameCloseListener;
 import net.gegy1000.plasmid.game.event.GameOpenListener;
 import net.gegy1000.plasmid.game.event.GameTickListener;
@@ -13,12 +8,12 @@ import net.gegy1000.plasmid.game.event.OfferPlayerListener;
 import net.gegy1000.plasmid.game.event.PlayerAddListener;
 import net.gegy1000.plasmid.game.event.PlayerDamageListener;
 import net.gegy1000.plasmid.game.event.PlayerDeathListener;
-import net.gegy1000.plasmid.game.event.PlayerRejoinListener;
-import net.gegy1000.plasmid.game.map.GameMap;
+import net.gegy1000.plasmid.game.player.JoinResult;
 import net.gegy1000.plasmid.game.rule.GameRule;
 import net.gegy1000.plasmid.game.rule.RuleResult;
 import net.gegy1000.plasmid.util.ItemStackBuilder;
 import net.gegy1000.plasmid.util.PlayerRef;
+import net.gegy1000.spleef.game.map.SpleefMap;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
@@ -36,8 +31,11 @@ import net.minecraft.world.GameMode;
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class SpleefActive {
+    private final GameWorld gameWorld;
+    private final SpleefMap map;
     private final SpleefConfig config;
 
     private final Set<PlayerRef> participants;
@@ -45,141 +43,116 @@ public final class SpleefActive {
     private final SpleefSpawnLogic spawnLogic;
 
     private final SpleefTimerBar timerBar = new SpleefTimerBar();
-    private final SpleefLevels levels;
     private long nextLevelDropTime = -1;
 
     private final boolean ignoreWinState;
     private long closeTime = -1;
 
-    private final Long2IntMap decayPositions = new Long2IntOpenHashMap();
-
-    private SpleefActive(GameMap map, SpleefConfig config, Set<PlayerRef> participants) {
+    private SpleefActive(GameWorld gameWorld, SpleefMap map, SpleefConfig config, Set<PlayerRef> participants) {
+        this.gameWorld = gameWorld;
+        this.map = map;
         this.config = config;
         this.participants = new HashSet<>(participants);
 
         this.ignoreWinState = this.participants.size() <= 1;
 
-        this.spawnLogic = new SpleefSpawnLogic(map);
-
-        this.levels = SpleefLevels.create(map);
+        this.spawnLogic = new SpleefSpawnLogic(gameWorld, map);
     }
 
-    public static Game open(GameMap map, SpleefConfig config, Set<PlayerRef> participants) {
-        SpleefActive active = new SpleefActive(map, config, participants);
+    public static void open(GameWorld gameWorld, SpleefMap map, SpleefConfig config) {
+        Set<PlayerRef> participants = gameWorld.getPlayers().stream()
+                .map(PlayerRef::of)
+                .collect(Collectors.toSet());
 
-        Game.Builder builder = Game.builder();
-        builder.setMap(map);
+        SpleefActive active = new SpleefActive(gameWorld, map, config, participants);
 
-        builder.setRule(GameRule.ALLOW_CRAFTING, RuleResult.DENY);
-        builder.setRule(GameRule.ALLOW_PORTALS, RuleResult.DENY);
-        builder.setRule(GameRule.ALLOW_PVP, RuleResult.DENY);
-        builder.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
-        builder.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-        builder.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
+        gameWorld.newGame(game -> {
+            game.setRule(GameRule.ALLOW_CRAFTING, RuleResult.DENY);
+            game.setRule(GameRule.ALLOW_PORTALS, RuleResult.DENY);
+            game.setRule(GameRule.ALLOW_PVP, RuleResult.DENY);
+            game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
+            game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
+            game.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
 
-        builder.on(GameOpenListener.EVENT, active::open);
-        builder.on(GameCloseListener.EVENT, active::close);
+            game.on(GameOpenListener.EVENT, active::onOpen);
+            game.on(GameCloseListener.EVENT, active::onClose);
 
-        builder.on(OfferPlayerListener.EVENT, (game, player) -> JoinResult.ok());
-        builder.on(PlayerAddListener.EVENT, active::addPlayer);
+            game.on(OfferPlayerListener.EVENT, player -> JoinResult.ok());
+            game.on(PlayerAddListener.EVENT, active::addPlayer);
 
-        builder.on(GameTickListener.EVENT, active::tick);
+            game.on(GameTickListener.EVENT, active::tick);
 
-        builder.on(PlayerDamageListener.EVENT, active::onPlayerDamage);
-        builder.on(PlayerDeathListener.EVENT, active::onPlayerDeath);
-        builder.on(PlayerRejoinListener.EVENT, active::rejoinPlayer);
-
-        return builder.build();
+            game.on(PlayerDamageListener.EVENT, active::onPlayerDamage);
+            game.on(PlayerDeathListener.EVENT, active::onPlayerDeath);
+        });
     }
 
-    private void open(Game game) {
-        ServerWorld world = game.getWorld();
+    private void onOpen() {
+        ServerWorld world = this.gameWorld.getWorld();
         for (PlayerRef ref : this.participants) {
             ref.ifOnline(world, this::spawnParticipant);
         }
     }
 
-    private void close(Game game) {
+    private void onClose() {
         this.timerBar.close();
     }
 
-    private void addPlayer(Game game, ServerPlayerEntity player) {
+    private void addPlayer(ServerPlayerEntity player) {
         if (!this.participants.contains(PlayerRef.of(player))) {
             this.spawnSpectator(player);
         }
         this.timerBar.addPlayer(player);
     }
 
-    private void rejoinPlayer(Game game, ServerPlayerEntity player) {
-        this.spawnSpectator(player);
-    }
-
-    private void tick(Game game) {
-        ServerWorld world = game.getWorld();
+    private void tick() {
+        ServerWorld world = this.gameWorld.getWorld();
         long time = world.getTime();
 
         if (this.closeTime > 0) {
-            this.tickClosing(game, time);
+            this.tickClosing(this.gameWorld, time);
             return;
         }
 
-        if (this.config.getDecay() >= 0) {
-            BlockPos.Mutable mutablePos = new BlockPos.Mutable();
-
-            // Remove decayed blocks from previous ticks
-            ObjectIterator<Long2IntMap.Entry> iterator = Long2IntMaps.fastIterator(this.decayPositions);
-            while (iterator.hasNext()) {
-                Long2IntMap.Entry entry = iterator.next();
-                long pos = entry.getLongKey();
-                int ticksLeft = entry.getIntValue();
-
-                if (ticksLeft == 0) {
-                    mutablePos.set(pos);
-                    world.breakBlock(mutablePos, false);
-                    iterator.remove();
-                } else {
-                    entry.setValue(ticksLeft - 1);
-                }
-            }
+        if (this.config.decay >= 0) {
+            this.map.tickDecay(world);
 
             for (PlayerRef ref : this.participants) {
                 ServerPlayerEntity player = ref.getEntity(world);
                 if (player == null) continue;
 
                 BlockPos landingPos = player.getLandingPos();
-                if (world.getBlockState(landingPos) == this.config.getFloor()) {
-                    this.decayPositions.putIfAbsent(landingPos.asLong(), this.config.getDecay());
-                }
+                this.map.tryBeginDecayAt(world, landingPos, this.config.decay);
             }
         }
 
         if (time > this.nextLevelDropTime) {
             if (this.nextLevelDropTime != -1) {
-                this.levels.tryDropLevel(this.config);
+                this.map.tryDropLevel(world);
             }
 
-            this.nextLevelDropTime = time + this.config.getLevelBreakInterval();
+            this.nextLevelDropTime = time + this.config.levelBreakInterval;
         } else {
             long ticksToDrop = this.nextLevelDropTime - time;
             if (ticksToDrop % 20 == 0) {
-                this.timerBar.update(ticksToDrop, this.config.getLevelBreakInterval());
+                this.timerBar.update(ticksToDrop, this.config.levelBreakInterval);
             }
         }
 
-        WinResult result = this.checkWinResult(game);
+        WinResult result = this.checkWinResult();
         if (result.isWin()) {
-            this.broadcastWin(game, result);
+            this.broadcastWin(result);
             this.closeTime = time + 20 * 5;
         }
     }
 
-    private void tickClosing(Game game, long time) {
+    private void tickClosing(GameWorld gameWorld, long time) {
         if (time >= this.closeTime) {
-            game.close();
+            gameWorld.closeWorld();
         }
     }
 
-    private void broadcastWin(Game game, WinResult result) {
+    private void broadcastWin(WinResult result) {
         ServerPlayerEntity winningPlayer = result.getWinningPlayer();
 
         Text message;
@@ -189,19 +162,19 @@ public final class SpleefActive {
             message = new LiteralText("The game ended, but nobody won!").formatted(Formatting.GOLD);
         }
 
-        this.broadcastMessage(game, message);
-        this.broadcastSound(game, SoundEvents.ENTITY_VILLAGER_YES);
+        this.broadcastMessage(message);
+        this.broadcastSound(SoundEvents.ENTITY_VILLAGER_YES);
     }
 
-    private boolean onPlayerDamage(Game game, ServerPlayerEntity player, DamageSource source, float amount) {
+    private boolean onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
         if (source == DamageSource.LAVA) {
-            this.eliminatePlayer(game, player);
+            this.eliminatePlayer(player);
         }
         return true;
     }
 
-    private boolean onPlayerDeath(Game game, ServerPlayerEntity player, DamageSource source) {
-        this.eliminatePlayer(game, player);
+    private boolean onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+        this.eliminatePlayer(player);
         return true;
     }
 
@@ -209,21 +182,21 @@ public final class SpleefActive {
         this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
         this.spawnLogic.spawnPlayer(player);
 
-        ItemStack shovel = ItemStackBuilder.of(this.config.getTool())
+        ItemStack shovel = ItemStackBuilder.of(this.config.tool)
                 .setUnbreakable()
                 .addEnchantment(Enchantments.EFFICIENCY, 2)
-                .addCanDestroy(this.config.getFloor().getBlock())
+                .addCanDestroy(this.config.map.floor.getBlock())
                 .build();
 
         player.inventory.insertStack(shovel);
     }
 
-    private void eliminatePlayer(Game game, ServerPlayerEntity player) {
+    private void eliminatePlayer(ServerPlayerEntity player) {
         Text message = player.getDisplayName().shallowCopy().append(" has been eliminated!")
                 .formatted(Formatting.RED);
 
-        this.broadcastMessage(game, message);
-        this.broadcastSound(game, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP);
+        this.broadcastMessage(message);
+        this.broadcastSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP);
 
         this.spawnSpectator(player);
 
@@ -236,25 +209,25 @@ public final class SpleefActive {
     }
 
     // TODO: extract common broadcast utils into plasmid
-    private void broadcastMessage(Game game, Text message) {
-        game.onlinePlayers().forEach(player -> {
+    private void broadcastMessage(Text message) {
+        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
             player.sendMessage(message, false);
-        });
+        }
     }
 
-    private void broadcastSound(Game game, SoundEvent sound) {
-        game.onlinePlayers().forEach(player -> {
+    private void broadcastSound(SoundEvent sound) {
+        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
             player.playSound(sound, SoundCategory.PLAYERS, 1.0F, 1.0F);
-        });
+        }
     }
 
-    private WinResult checkWinResult(Game game) {
+    private WinResult checkWinResult() {
         // for testing purposes: don't end the game if we only ever had one participant
         if (this.ignoreWinState) {
             return WinResult.no();
         }
 
-        ServerWorld world = game.getWorld();
+        ServerWorld world = this.gameWorld.getWorld();
 
         ServerPlayerEntity winningPlayer = null;
 

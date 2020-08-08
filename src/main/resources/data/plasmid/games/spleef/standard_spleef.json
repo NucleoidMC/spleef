@@ -1,14 +1,9 @@
 {
   "type": "spleef:spleef",
   "map": {
-    "dimension": "plasmid:void",
-    "origin": [0, 64, 0],
-    "provider": {
-      "type": "spleef:spleef",
-      "radius": 16,
-      "levels": 4,
-      "level_height": 5
-    }
+    "radius": 16,
+    "levels": 4,
+    "level_height": 5
   },
   "players": {
     "min": 1,
