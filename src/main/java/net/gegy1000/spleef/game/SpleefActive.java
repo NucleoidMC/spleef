@@ -1,5 +1,9 @@
 package net.gegy1000.spleef.game;
 
+import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.longs.Long2IntMaps;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import net.gegy1000.plasmid.game.Game;
 import net.gegy1000.plasmid.game.JoinResult;
 import net.gegy1000.plasmid.game.event.GameCloseListener;
@@ -15,7 +19,6 @@ import net.gegy1000.plasmid.game.rule.GameRule;
 import net.gegy1000.plasmid.game.rule.RuleResult;
 import net.gegy1000.plasmid.util.ItemStackBuilder;
 import net.gegy1000.plasmid.util.PlayerRef;
-import net.minecraft.block.Blocks;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
@@ -31,16 +34,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 
 import javax.annotation.Nullable;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 public final class SpleefActive {
     private final SpleefConfig config;
@@ -56,7 +51,7 @@ public final class SpleefActive {
     private final boolean ignoreWinState;
     private long closeTime = -1;
 
-    private final Map<BlockPos, Integer> decayPositions = Maps.newHashMap();
+    private final Long2IntMap decayPositions = new Long2IntOpenHashMap();
 
     private SpleefActive(GameMap map, SpleefConfig config, Set<PlayerRef> participants) {
         this.config = config;
@@ -129,18 +124,21 @@ public final class SpleefActive {
         }
 
         if (this.config.getDecay() >= 0) {
+            BlockPos.Mutable mutablePos = new BlockPos.Mutable();
+
             // Remove decayed blocks from previous ticks
-            Iterator<Map.Entry<BlockPos, Integer>> iterator = this.decayPositions.entrySet().iterator();
+            ObjectIterator<Long2IntMap.Entry> iterator = Long2IntMaps.fastIterator(this.decayPositions);
             while (iterator.hasNext()) {
-                Map.Entry<BlockPos, Integer> entry = iterator.next();
-                BlockPos pos = entry.getKey();
-                int ticksLeft = entry.getValue();
+                Long2IntMap.Entry entry = iterator.next();
+                long pos = entry.getLongKey();
+                int ticksLeft = entry.getIntValue();
 
                 if (ticksLeft == 0) {
-                    world.breakBlock(pos, false);
+                    mutablePos.set(pos);
+                    world.breakBlock(mutablePos, false);
                     iterator.remove();
                 } else {
-                    this.decayPositions.put(pos, ticksLeft - 1);
+                    entry.setValue(ticksLeft - 1);
                 }
             }
 
@@ -149,8 +147,8 @@ public final class SpleefActive {
                 if (player == null) continue;
 
                 BlockPos landingPos = player.getLandingPos();
-                if (world.getBlockState(landingPos) == this.config.getFloor() && !this.decayPositions.containsKey(landingPos)) {
-                    this.decayPositions.put(landingPos, this.config.getDecay());
+                if (world.getBlockState(landingPos) == this.config.getFloor()) {
+                    this.decayPositions.putIfAbsent(landingPos.asLong(), this.config.getDecay());
                 }
             }
         }
