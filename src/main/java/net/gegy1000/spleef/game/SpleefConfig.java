@@ -21,7 +21,7 @@ public final class SpleefConfig implements GameConfig {
                 BlockState.CODEC.optionalFieldOf("floor", Blocks.SNOW_BLOCK.getDefaultState()).forGetter(SpleefConfig::getFloor),
                 ItemStack.CODEC.optionalFieldOf("tool", new ItemStack(Items.DIAMOND_SHOVEL)).forGetter(SpleefConfig::getTool),
                 Codec.LONG.optionalFieldOf("level_break_interval", 20L * 60).forGetter(SpleefConfig::getLevelBreakInterval),
-                Codec.BOOL.optionalFieldOf("decay", false).forGetter(SpleefConfig::getDecay)
+                Codec.INT.optionalFieldOf("decay", -1).forGetter(SpleefConfig::getDecay)
         ).apply(instance, SpleefConfig::new);
     });
 
@@ -33,7 +33,7 @@ public final class SpleefConfig implements GameConfig {
     private final ItemStack tool;
 
     private final long levelBreakInterval;
-    private final boolean decay;
+    private final int decay;
 
     public SpleefConfig(
             GameMapConfig<SpleefConfig> mapConfig,
@@ -42,7 +42,7 @@ public final class SpleefConfig implements GameConfig {
             BlockState floor,
             ItemStack tool,
             long levelBreakInterval,
-            boolean decay
+            int decay
     ) {
         this.mapConfig = mapConfig;
         this.playerConfig = playerConfig;
@@ -77,7 +77,7 @@ public final class SpleefConfig implements GameConfig {
         return this.levelBreakInterval;
     }
     
-    public boolean getDecay() {
+    public int getDecay() {
         return this.decay;
     }
 }

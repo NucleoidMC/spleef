@@ -128,27 +128,30 @@ public final class SpleefActive {
             return;
         }
 
-        // Remove decayed blocks from previous ticks
-        Iterator<Map.Entry<BlockPos, Integer>> iterator = this.decayPositions.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<BlockPos, Integer> entry = iterator.next();
-            BlockPos pos = entry.getKey();
-            int ticksLeft = entry.getValue();
+        if (this.config.getDecay() >= 0) {
+            // Remove decayed blocks from previous ticks
+            Iterator<Map.Entry<BlockPos, Integer>> iterator = this.decayPositions.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<BlockPos, Integer> entry = iterator.next();
+                BlockPos pos = entry.getKey();
+                int ticksLeft = entry.getValue();
 
-            if (ticksLeft == 0) {
-                world.breakBlock(pos, false);
-                iterator.remove();
-            } else {
-                this.decayPositions.put(pos, ticksLeft - 1);
+                if (ticksLeft == 0) {
+                    world.breakBlock(pos, false);
+                    iterator.remove();
+                } else {
+                    this.decayPositions.put(pos, ticksLeft - 1);
+                }
             }
-        }
 
-        for (PlayerRef ref : this.participants) {
-            ServerPlayerEntity player = ref.getEntity(world);
+            for (PlayerRef ref : this.participants) {
+                ServerPlayerEntity player = ref.getEntity(world);
+                if (player == null) continue;
 
-            BlockPos landingPos = player.getLandingPos();
-            if (world.getBlockState(landingPos) == this.config.getFloor() && !this.decayPositions.containsKey(landingPos)) {
-                this.decayPositions.put(landingPos, 5);
+                BlockPos landingPos = player.getLandingPos();
+                if (world.getBlockState(landingPos) == this.config.getFloor() && !this.decayPositions.containsKey(landingPos)) {
+                    this.decayPositions.put(landingPos, this.config.getDecay());
+                }
             }
         }
 
