@@ -15,6 +15,7 @@ import net.gegy1000.plasmid.game.rule.GameRule;
 import net.gegy1000.plasmid.game.rule.RuleResult;
 import net.gegy1000.plasmid.util.ItemStackBuilder;
 import net.gegy1000.plasmid.util.PlayerRef;
+import net.minecraft.block.Blocks;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
@@ -26,11 +27,20 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 
 import javax.annotation.Nullable;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 public final class SpleefActive {
     private final SpleefConfig config;
@@ -45,6 +55,8 @@ public final class SpleefActive {
 
     private final boolean ignoreWinState;
     private long closeTime = -1;
+
+    private final Map<BlockPos, Integer> decayPositions = Maps.newHashMap();
 
     private SpleefActive(GameMap map, SpleefConfig config, Set<PlayerRef> participants) {
         this.config = config;
@@ -114,6 +126,33 @@ public final class SpleefActive {
         if (this.closeTime > 0) {
             this.tickClosing(game, time);
             return;
+        }
+
+        if (this.config.getDecay() >= 0) {
+            // Remove decayed blocks from previous ticks
+            Iterator<Map.Entry<BlockPos, Integer>> iterator = this.decayPositions.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<BlockPos, Integer> entry = iterator.next();
+                BlockPos pos = entry.getKey();
+                int ticksLeft = entry.getValue();
+
+                if (ticksLeft == 0) {
+                    world.breakBlock(pos, false);
+                    iterator.remove();
+                } else {
+                    this.decayPositions.put(pos, ticksLeft - 1);
+                }
+            }
+
+            for (PlayerRef ref : this.participants) {
+                ServerPlayerEntity player = ref.getEntity(world);
+                if (player == null) continue;
+
+                BlockPos landingPos = player.getLandingPos();
+                if (world.getBlockState(landingPos) == this.config.getFloor() && !this.decayPositions.containsKey(landingPos)) {
+                    this.decayPositions.put(landingPos, this.config.getDecay());
+                }
+            }
         }
 
         if (time > this.nextLevelDropTime) {
