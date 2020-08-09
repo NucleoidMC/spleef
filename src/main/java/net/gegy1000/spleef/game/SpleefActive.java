@@ -8,11 +8,11 @@ import net.gegy1000.plasmid.game.event.OfferPlayerListener;
 import net.gegy1000.plasmid.game.event.PlayerAddListener;
 import net.gegy1000.plasmid.game.event.PlayerDamageListener;
 import net.gegy1000.plasmid.game.event.PlayerDeathListener;
+import net.gegy1000.plasmid.game.event.PlayerRemoveListener;
 import net.gegy1000.plasmid.game.player.JoinResult;
 import net.gegy1000.plasmid.game.rule.GameRule;
 import net.gegy1000.plasmid.game.rule.RuleResult;
 import net.gegy1000.plasmid.util.ItemStackBuilder;
-import net.gegy1000.plasmid.util.PlayerRef;
 import net.gegy1000.spleef.game.map.SpleefMap;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
@@ -31,14 +31,13 @@ import net.minecraft.world.GameMode;
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public final class SpleefActive {
     private final GameWorld gameWorld;
     private final SpleefMap map;
     private final SpleefConfig config;
 
-    private final Set<PlayerRef> participants;
+    private final Set<ServerPlayerEntity> participants;
 
     private final SpleefSpawnLogic spawnLogic;
 
@@ -48,7 +47,7 @@ public final class SpleefActive {
     private final boolean ignoreWinState;
     private long closeTime = -1;
 
-    private SpleefActive(GameWorld gameWorld, SpleefMap map, SpleefConfig config, Set<PlayerRef> participants) {
+    private SpleefActive(GameWorld gameWorld, SpleefMap map, SpleefConfig config, Set<ServerPlayerEntity> participants) {
         this.gameWorld = gameWorld;
         this.map = map;
         this.config = config;
@@ -60,11 +59,7 @@ public final class SpleefActive {
     }
 
     public static void open(GameWorld gameWorld, SpleefMap map, SpleefConfig config) {
-        Set<PlayerRef> participants = gameWorld.getPlayers().stream()
-                .map(PlayerRef::of)
-                .collect(Collectors.toSet());
-
-        SpleefActive active = new SpleefActive(gameWorld, map, config, participants);
+        SpleefActive active = new SpleefActive(gameWorld, map, config, gameWorld.getPlayers());
 
         gameWorld.newGame(game -> {
             game.setRule(GameRule.ALLOW_CRAFTING, RuleResult.DENY);
@@ -79,6 +74,7 @@ public final class SpleefActive {
 
             game.on(OfferPlayerListener.EVENT, player -> JoinResult.ok());
             game.on(PlayerAddListener.EVENT, active::addPlayer);
+            game.on(PlayerRemoveListener.EVENT, active::removePlayer);
 
             game.on(GameTickListener.EVENT, active::tick);
 
@@ -88,9 +84,8 @@ public final class SpleefActive {
     }
 
     private void onOpen() {
-        ServerWorld world = this.gameWorld.getWorld();
-        for (PlayerRef ref : this.participants) {
-            ref.ifOnline(world, this::spawnParticipant);
+        for (ServerPlayerEntity participant : this.participants) {
+            this.spawnParticipant(participant);
         }
     }
 
@@ -99,10 +94,15 @@ public final class SpleefActive {
     }
 
     private void addPlayer(ServerPlayerEntity player) {
-        if (!this.participants.contains(PlayerRef.of(player))) {
+        if (!this.participants.contains(player)) {
             this.spawnSpectator(player);
         }
         this.timerBar.addPlayer(player);
+    }
+
+    private void removePlayer(ServerPlayerEntity player) {
+        this.participants.remove(player);
+        this.timerBar.removePlayer(player);
     }
 
     private void tick() {
@@ -117,10 +117,7 @@ public final class SpleefActive {
         if (this.config.decay >= 0) {
             this.map.tickDecay(world);
 
-            for (PlayerRef ref : this.participants) {
-                ServerPlayerEntity player = ref.getEntity(world);
-                if (player == null) continue;
-
+            for (ServerPlayerEntity player : this.participants) {
                 BlockPos landingPos = player.getLandingPos();
                 this.map.tryBeginDecayAt(world, landingPos, this.config.decay);
             }
@@ -200,7 +197,7 @@ public final class SpleefActive {
 
         this.spawnSpectator(player);
 
-        this.participants.remove(PlayerRef.of(player));
+        this.participants.remove(player);
     }
 
     private void spawnSpectator(ServerPlayerEntity player) {
@@ -227,20 +224,15 @@ public final class SpleefActive {
             return WinResult.no();
         }
 
-        ServerWorld world = this.gameWorld.getWorld();
-
         ServerPlayerEntity winningPlayer = null;
 
-        for (PlayerRef ref : this.participants) {
-            ServerPlayerEntity player = ref.getEntity(world);
-            if (player != null) {
-                // we still have more than one player remaining
-                if (winningPlayer != null) {
-                    return WinResult.no();
-                }
-
-                winningPlayer = player;
+        for (ServerPlayerEntity player : this.participants) {
+            // we still have more than one player remaining
+            if (winningPlayer != null) {
+                return WinResult.no();
             }
+
+            winningPlayer = player;
         }
 
         return WinResult.win(winningPlayer);
