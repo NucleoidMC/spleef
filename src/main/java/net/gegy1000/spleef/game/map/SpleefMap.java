@@ -15,10 +15,11 @@ import net.minecraft.world.gen.chunk.ChunkGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public final class SpleefMap {
     private final MapTemplate template;
-    private final SpleefMapConfig config;
+    public final Set<BlockState> providedFloors;
 
     private final List<BlockBounds> levels = new ArrayList<>();
     private int topLevel;
@@ -27,9 +28,9 @@ public final class SpleefMap {
 
     private BlockPos spawn = BlockPos.ORIGIN;
 
-    public SpleefMap(MapTemplate template, SpleefMapConfig config) {
+    public SpleefMap(MapTemplate template, Set<BlockState> providedFloors) {
         this.template = template;
-        this.config = config;
+        this.providedFloors = providedFloors;
     }
 
     public void addLevel(BlockBounds bounds) {
@@ -62,7 +63,7 @@ public final class SpleefMap {
     }
 
     public void tryBeginDecayAt(ServerWorld world, BlockPos pos, int timer) {
-        if (world.getBlockState(pos) == this.config.floor) {
+        if (this.providedFloors.contains(world.getBlockState(pos))) {
             this.decayPositions.putIfAbsent(pos.asLong(), timer);
         }
     }
@@ -81,7 +82,7 @@ public final class SpleefMap {
     private void deleteLevel(ServerWorld world, BlockBounds level) {
         for (BlockPos pos : level.iterate()) {
             BlockState state = world.getBlockState(pos);
-            if (state == this.config.floor) {
+            if (this.providedFloors.contains(state)) {
                 world.setBlockState(pos, Blocks.AIR.getDefaultState());
             }
         }
