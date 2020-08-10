@@ -17,5 +17,9 @@ public interface MapShape {
     public void generate(MapTemplate template, int minY, int maxY, Brush brush);
     public BlockBounds getLevelBounds(int y);
 
+    public default int getSpawnOffset() {
+        return 0;
+    }
+
     public Codec<? extends MapShape> getCodec();
 }

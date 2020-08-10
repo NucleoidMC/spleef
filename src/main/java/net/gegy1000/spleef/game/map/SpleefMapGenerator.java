@@ -27,7 +27,8 @@ public final class SpleefMapGenerator {
         this.addLevels(template, map);
         this.addWall(template);
 
-        map.setSpawn(new BlockPos(0, this.config.levels * this.config.levelHeight + 2, 0));
+        int offset = this.config.shape.getSpawnOffset();
+        map.setSpawn(new BlockPos(offset, this.config.levels * this.config.levelHeight + 2, 0));
 
         return map;
     }
