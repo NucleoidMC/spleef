@@ -38,9 +38,9 @@ public final class SpleefMapGenerator {
         BlockState wall = this.config.wall;
         BlockState lava = Blocks.LAVA.getDefaultState();
 
-        this.addCircle(template, radius, 0, 0, Brush.fill(wall));
-        this.addCircle(template, radius, 1, 1, new Brush(wall, lava));
-        this.addCircle(template, radius, 1, this.config.levelHeight + 1, Brush.outline(wall));
+        this.addShape(template, radius, 0, 0, Brush.fill(wall));
+        this.addShape(template, radius, 1, 1, new Brush(wall, lava));
+        this.addShape(template, radius, 1, this.config.levelHeight + 1, Brush.outline(wall));
     }
 
     private void addLevels(MapTemplate template, SpleefMap map) {
@@ -49,7 +49,7 @@ public final class SpleefMapGenerator {
 
         for (int level = 0; level < this.config.levels; level++) {
             int y = (level + 1) * this.config.levelHeight + 1;
-            this.addCircle(template, radius, y, y, brush);
+            this.addShape(template, radius, y, y, brush);
 
             map.addLevel(new BlockBounds(
                     new BlockPos(-radius, y, -radius),
@@ -65,8 +65,41 @@ public final class SpleefMapGenerator {
         int minY = 1;
         int maxY = (this.config.levels + 1) * this.config.levelHeight;
 
-        this.addCircle(template, radius, minY, maxY, wallBrush);
-    }
+        this.addShape(template, radius, minY, maxY, wallBrush);
+	}
+	
+	private void addShape(MapTemplate template, int radius, int minY, int maxY, Brush brush) {
+		if (this.config.square) {
+			this.addSquare(template, radius, minY, maxY, brush);
+		} else {
+			this.addCircle(template, radius, minY, maxY, brush);
+		}
+	}
+
+	private void addSquare(MapTemplate template, int radius, int minY, int maxY, Brush brush) {
+		BlockPos.Mutable mutablePos = new BlockPos.Mutable();
+
+		BlockState outline = brush.outline;
+		BlockState fill = brush.fill;
+
+        for (int z = -radius; z <= radius; z++) {
+            for (int x = -radius; x <= radius; x++) {
+				mutablePos.set(x, 0, z);
+
+				if ((z == -radius || z == radius || x == -radius || x == radius) && outline != null) {
+					for (int y = minY; y <= maxY; y++) {
+						mutablePos.setY(y);
+						template.setBlockState(mutablePos, outline);
+					}
+				} else if (fill != null) {
+					for (int y = minY; y <= maxY; y++) {
+						mutablePos.setY(y);
+						template.setBlockState(mutablePos, fill);
+					}
+				}
+			}
+		}
+	}
 
     private void addCircle(MapTemplate template, int radius, int minY, int maxY, Brush brush) {
         BlockPos.Mutable mutablePos = new BlockPos.Mutable();
