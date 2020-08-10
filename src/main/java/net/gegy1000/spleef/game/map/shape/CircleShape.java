@@ -1,23 +1,39 @@
 package net.gegy1000.spleef.game.map.shape;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
 import net.gegy1000.plasmid.game.map.template.MapTemplate;
+import net.gegy1000.plasmid.util.BlockBounds;
 import net.gegy1000.spleef.game.map.SpleefMapGenerator.Brush;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 
 public class CircleShape implements MapShape {
+    public static final Codec<CircleShape> CODEC = RecordCodecBuilder.create(instance -> {
+        return instance.group(
+            Codec.INT.fieldOf("radius").forGetter(config -> config.radius)
+        ).apply(instance, CircleShape::new);
+    });
+
+    private final int radius;
+
+    public CircleShape(int radius) {
+        this.radius = radius;
+    }
+
     @Override
-    public void generate(MapTemplate template, int radius, int minY, int maxY, Brush brush) {
+    public void generate(MapTemplate template, int minY, int maxY, Brush brush) {
         BlockPos.Mutable mutablePos = new BlockPos.Mutable();
 
-        int radius2 = radius * radius;
-        int outlineRadius2 = (radius - 1) * (radius - 1);
+        int radius2 = this.radius * this.radius;
+        int outlineRadius2 = (this.radius - 1) * (this.radius - 1);
 
         BlockState outline = brush.outline;
         BlockState fill = brush.fill;
 
-        for (int z = -radius; z <= radius; z++) {
-            for (int x = -radius; x <= radius; x++) {
+        for (int z = -this.radius; z <= this.radius; z++) {
+            for (int x = -this.radius; x <= this.radius; x++) {
                 int distance2 = x * x + z * z;
                 if (distance2 >= radius2) {
                     continue;
@@ -38,5 +54,18 @@ public class CircleShape implements MapShape {
                 }
             }
         }
+    }
+
+    @Override
+    public BlockBounds getLevelBounds(int y) {
+        return new BlockBounds(
+            new BlockPos(-this.radius, y, -this.radius),
+            new BlockPos(this.radius, y, this.radius)
+        );
+    }
+
+    @Override
+    public Codec<CircleShape> getCodec() {
+        return CODEC;
     }
 }
