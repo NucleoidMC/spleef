@@ -2,6 +2,8 @@ package net.gegy1000.spleef.game.map;
 
 import net.gegy1000.plasmid.game.map.template.MapTemplate;
 import net.gegy1000.plasmid.util.BlockBounds;
+import net.gegy1000.spleef.game.map.shape.CircleShape;
+import net.gegy1000.spleef.game.map.shape.MapShape;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.Util;
@@ -11,9 +13,16 @@ import java.util.concurrent.CompletableFuture;
 
 public final class SpleefMapGenerator {
     private final SpleefMapConfig config;
+    private MapShape shape;
 
     public SpleefMapGenerator(SpleefMapConfig config) {
         this.config = config;
+
+        try {
+            this.shape = this.config.getShape().newInstance();
+        } catch (Exception e) {
+            this.shape = new CircleShape();
+        }
     }
 
     public CompletableFuture<SpleefMap> create() {
@@ -38,9 +47,9 @@ public final class SpleefMapGenerator {
         BlockState wall = this.config.wall;
         BlockState lava = Blocks.LAVA.getDefaultState();
 
-        this.addShape(template, radius, 0, 0, Brush.fill(wall));
-        this.addShape(template, radius, 1, 1, new Brush(wall, lava));
-        this.addShape(template, radius, 1, this.config.levelHeight + 1, Brush.outline(wall));
+        this.shape.generate(template, radius, 0, 0, Brush.fill(wall));
+        this.shape.generate(template, radius, 1, 1, new Brush(wall, lava));
+        this.shape.generate(template, radius, 1, this.config.levelHeight + 1, Brush.outline(wall));
     }
 
     private void addLevels(MapTemplate template, SpleefMap map) {
@@ -49,7 +58,7 @@ public final class SpleefMapGenerator {
 
         for (int level = 0; level < this.config.levels; level++) {
             int y = (level + 1) * this.config.levelHeight + 1;
-            this.addShape(template, radius, y, y, brush);
+            this.shape.generate(template, radius, y, y, brush);
 
             map.addLevel(new BlockBounds(
                     new BlockPos(-radius, y, -radius),
@@ -65,78 +74,12 @@ public final class SpleefMapGenerator {
         int minY = 1;
         int maxY = (this.config.levels + 1) * this.config.levelHeight;
 
-        this.addShape(template, radius, minY, maxY, wallBrush);
-	}
-	
-	private void addShape(MapTemplate template, int radius, int minY, int maxY, Brush brush) {
-		if (this.config.square) {
-			this.addSquare(template, radius, minY, maxY, brush);
-		} else {
-			this.addCircle(template, radius, minY, maxY, brush);
-		}
-	}
-
-	private void addSquare(MapTemplate template, int radius, int minY, int maxY, Brush brush) {
-		BlockPos.Mutable mutablePos = new BlockPos.Mutable();
-
-		BlockState outline = brush.outline;
-		BlockState fill = brush.fill;
-
-        for (int z = -radius; z <= radius; z++) {
-            for (int x = -radius; x <= radius; x++) {
-				mutablePos.set(x, 0, z);
-
-				if ((z == -radius || z == radius || x == -radius || x == radius) && outline != null) {
-					for (int y = minY; y <= maxY; y++) {
-						mutablePos.setY(y);
-						template.setBlockState(mutablePos, outline);
-					}
-				} else if (fill != null) {
-					for (int y = minY; y <= maxY; y++) {
-						mutablePos.setY(y);
-						template.setBlockState(mutablePos, fill);
-					}
-				}
-			}
-		}
-	}
-
-    private void addCircle(MapTemplate template, int radius, int minY, int maxY, Brush brush) {
-        BlockPos.Mutable mutablePos = new BlockPos.Mutable();
-
-        int radius2 = radius * radius;
-        int outlineRadius2 = (radius - 1) * (radius - 1);
-
-        BlockState outline = brush.outline;
-        BlockState fill = brush.fill;
-
-        for (int z = -radius; z <= radius; z++) {
-            for (int x = -radius; x <= radius; x++) {
-                int distance2 = x * x + z * z;
-                if (distance2 >= radius2) {
-                    continue;
-                }
-
-                mutablePos.set(x, 0, z);
-
-                if (distance2 >= outlineRadius2 && outline != null) {
-                    for (int y = minY; y <= maxY; y++) {
-                        mutablePos.setY(y);
-                        template.setBlockState(mutablePos, outline);
-                    }
-                } else if (fill != null) {
-                    for (int y = minY; y <= maxY; y++) {
-                        mutablePos.setY(y);
-                        template.setBlockState(mutablePos, fill);
-                    }
-                }
-            }
-        }
+        this.shape.generate(template, radius, minY, maxY, wallBrush);
     }
 
-    static final class Brush {
-        final BlockState outline;
-        final BlockState fill;
+    public static final class Brush {
+        public final BlockState outline;
+        public final BlockState fill;
 
         public Brush(BlockState outline, BlockState fill) {
             this.outline = outline;
