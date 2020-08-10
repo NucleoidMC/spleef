@@ -7,11 +7,9 @@ import java.util.concurrent.CompletableFuture;
 
 import net.gegy1000.plasmid.game.map.template.MapTemplate;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
-import net.minecraft.world.gen.stateprovider.SimpleBlockStateProvider;
 
 public final class SpleefMapGenerator {
     private final SpleefMapConfig config;
@@ -44,7 +42,7 @@ public final class SpleefMapGenerator {
 
     private void addBase(MapTemplate template, Random random) {
         BlockStateProvider wallProvider = this.config.wallProvider;
-        BlockStateProvider lavaProvider = new SimpleBlockStateProvider(Blocks.LAVA.getDefaultState());
+        BlockStateProvider lavaProvider = this.config.lavaProvider;
 
         this.config.shape.generate(template, 0, 0, Brush.fill(wallProvider), random);
         this.config.shape.generate(template, 1, 1, new Brush(wallProvider, lavaProvider), random);
