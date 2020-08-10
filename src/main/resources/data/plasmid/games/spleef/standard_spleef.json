@@ -1,7 +1,10 @@
 {
   "type": "spleef:spleef",
   "map": {
-    "radius": 16,
+    "shape": {
+      "type": "spleef:circle",
+      "radius": 16
+    },
     "levels": 4,
     "level_height": 5
   },

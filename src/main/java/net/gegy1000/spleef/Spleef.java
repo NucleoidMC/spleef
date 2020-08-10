@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.gegy1000.plasmid.game.GameType;
 import net.gegy1000.spleef.game.SpleefConfig;
 import net.gegy1000.spleef.game.SpleefWaiting;
+import net.gegy1000.spleef.game.map.shape.MapShapes;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,5 +21,6 @@ public final class Spleef implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        MapShapes.initialize();
     }
 }
