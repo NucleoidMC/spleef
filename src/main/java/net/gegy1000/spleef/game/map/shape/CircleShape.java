@@ -1,12 +1,13 @@
 package net.gegy1000.spleef.game.map.shape;
 
+import java.util.Random;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.gegy1000.plasmid.game.map.template.MapTemplate;
 import net.gegy1000.plasmid.util.BlockBounds;
 import net.gegy1000.spleef.game.map.SpleefMapGenerator.Brush;
-import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 
 public class CircleShape implements MapShape {
@@ -26,16 +27,13 @@ public class CircleShape implements MapShape {
     }
 
     @Override
-    public void generate(MapTemplate template, int minY, int maxY, Brush brush) {
+    public void generate(MapTemplate template, int minY, int maxY, Brush brush, Random random) {
         BlockPos.Mutable mutablePos = new BlockPos.Mutable();
 
         int radius2 = this.radius * this.radius;
         int outlineRadius2 = (this.radius - 1) * (this.radius - 1);
         int innerRadius2 = (this.innerRadius - 1) * (this.innerRadius - 1);
         int inlineRadius2 = this.innerRadius * this.innerRadius;
-
-        BlockState outline = brush.outline;
-        BlockState fill = brush.fill;
 
         for (int z = -this.radius; z <= this.radius; z++) {
             for (int x = -this.radius; x <= this.radius; x++) {
@@ -46,15 +44,15 @@ public class CircleShape implements MapShape {
 
                 mutablePos.set(x, 0, z);
 
-                if ((distance2 >= outlineRadius2 || (distance2 < inlineRadius2 && this.innerRadius > 0)) && outline != null) {
+                if ((distance2 >= outlineRadius2 || (distance2 < inlineRadius2 && this.innerRadius > 0)) && brush.outlineProvider != null) {
                     for (int y = minY; y <= maxY; y++) {
                         mutablePos.setY(y);
-                        template.setBlockState(mutablePos, outline);
+                        template.setBlockState(mutablePos, brush.provideOutline(random, mutablePos));
                     }
-                } else if (fill != null) {
+                } else if (brush.fillProvider != null) {
                     for (int y = minY; y <= maxY; y++) {
                         mutablePos.setY(y);
-                        template.setBlockState(mutablePos, fill);
+                        template.setBlockState(mutablePos, brush.provideFill(random, mutablePos));
                     }
                 }
             }

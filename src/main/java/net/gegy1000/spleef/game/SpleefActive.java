@@ -14,9 +14,9 @@ import net.gegy1000.plasmid.game.rule.GameRule;
 import net.gegy1000.plasmid.game.rule.RuleResult;
 import net.gegy1000.plasmid.util.ItemStackBuilder;
 import net.gegy1000.spleef.game.map.SpleefMap;
+import net.minecraft.block.BlockState;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -179,13 +179,15 @@ public final class SpleefActive {
         this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
         this.spawnLogic.spawnPlayer(player);
 
-        ItemStack shovel = ItemStackBuilder.of(this.config.tool)
+        ItemStackBuilder shovelBuilder = ItemStackBuilder.of(this.config.tool)
                 .setUnbreakable()
-                .addEnchantment(Enchantments.EFFICIENCY, 2)
-                .addCanDestroy(this.config.map.floor.getBlock())
-                .build();
+                .addEnchantment(Enchantments.EFFICIENCY, 2);
 
-        player.inventory.insertStack(shovel);
+        for (BlockState state : this.map.providedFloors) {
+            shovelBuilder.addCanDestroy(state.getBlock());
+        }
+
+        player.inventory.insertStack(shovelBuilder.build());
     }
 
     private void eliminatePlayer(ServerPlayerEntity player) {

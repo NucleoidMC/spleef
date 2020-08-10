@@ -1,12 +1,17 @@
 package net.gegy1000.spleef.game.map;
 
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
 import net.gegy1000.plasmid.game.map.template.MapTemplate;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
-
-import java.util.concurrent.CompletableFuture;
+import net.minecraft.world.gen.stateprovider.BlockStateProvider;
+import net.minecraft.world.gen.stateprovider.SimpleBlockStateProvider;
 
 public final class SpleefMapGenerator {
     private final SpleefMapConfig config;
@@ -21,11 +26,15 @@ public final class SpleefMapGenerator {
 
     private SpleefMap build() {
         MapTemplate template = MapTemplate.createEmpty();
-        SpleefMap map = new SpleefMap(template, this.config);
 
-        this.addBase(template);
-        this.addLevels(template, map);
-        this.addWall(template);
+        Set<BlockState> providedFloors = new HashSet<>();
+        SpleefMap map = new SpleefMap(template, providedFloors);
+
+        Random random = new Random();
+
+        this.addBase(template, random);
+        this.addLevels(template, map, providedFloors, random);
+        this.addWall(template, random);
 
         int offset = this.config.shape.getSpawnOffset();
         map.setSpawn(new BlockPos(offset, this.config.levels * this.config.levelHeight + 2, 0));
@@ -33,53 +42,87 @@ public final class SpleefMapGenerator {
         return map;
     }
 
-    private void addBase(MapTemplate template) {
-        BlockState wall = this.config.wall;
-        BlockState lava = Blocks.LAVA.getDefaultState();
+    private void addBase(MapTemplate template, Random random) {
+        BlockStateProvider wallProvider = this.config.wallProvider;
+        BlockStateProvider lavaProvider = new SimpleBlockStateProvider(Blocks.LAVA.getDefaultState());
 
-        this.config.shape.generate(template, 0, 0, Brush.fill(wall));
-        this.config.shape.generate(template, 1, 1, new Brush(wall, lava));
-        this.config.shape.generate(template, 1, this.config.levelHeight + 1, Brush.outline(wall));
+        this.config.shape.generate(template, 0, 0, Brush.fill(wallProvider), random);
+        this.config.shape.generate(template, 1, 1, new Brush(wallProvider, lavaProvider), random);
+        this.config.shape.generate(template, 1, this.config.levelHeight + 1, Brush.outline(wallProvider), random);
     }
 
-    private void addLevels(MapTemplate template, SpleefMap map) {
-        Brush brush = new Brush(this.config.wall, this.config.floor);
+    private void addLevels(MapTemplate template, SpleefMap map, Set<BlockState> providedFloors, Random random) {
+        Brush brush = new Brush(this.config.wallProvider, this.config.floorProvider, null, providedFloors);
 
         for (int level = 0; level < this.config.levels; level++) {
             int y = (level + 1) * this.config.levelHeight + 1;
-            this.config.shape.generate(template, y, y, brush);
+            this.config.shape.generate(template, y, y, brush, random);
             map.addLevel(this.config.shape.getLevelBounds(y));
         }
     }
 
-    private void addWall(MapTemplate template) {
-        Brush wallBrush = Brush.outline(this.config.wall);
+    private void addWall(MapTemplate template, Random random) {
+        Brush wallBrush = Brush.outline(this.config.wallProvider);
 
         int minY = 1;
         int maxY = (this.config.levels + 1) * this.config.levelHeight;
 
-        this.config.shape.generate(template, minY, maxY, wallBrush);
+        this.config.shape.generate(template, minY, maxY, wallBrush, random);
     }
 
     public static final class Brush {
-        public final BlockState outline;
-        public final BlockState fill;
+        public final BlockStateProvider outlineProvider;
+        public final BlockStateProvider fillProvider;
 
-        public Brush(BlockState outline, BlockState fill) {
-            this.outline = outline;
-            this.fill = fill;
+        public final Set<BlockState> outlineResults;
+        public final Set<BlockState> fillResults;
 
-            if (outline == null && fill == null) {
+        public Brush(BlockStateProvider outlineProvider, BlockStateProvider fillProvider, Set<BlockState> outlineResults, Set<BlockState> fillResults) {
+            this.outlineProvider = outlineProvider;
+            this.fillProvider = fillProvider;
+
+            if (outlineProvider == null && fillProvider == null) {
                 throw new IllegalArgumentException("null brush");
             }
+
+            this.outlineResults = outlineResults;
+            this.fillResults = fillResults;
         }
 
-        public static Brush outline(BlockState block) {
-            return new Brush(block, null);
+        public Brush(BlockStateProvider outlineProvider, BlockStateProvider fillProvider) {
+            this(outlineProvider, fillProvider, null, null);
         }
 
-        public static Brush fill(BlockState block) {
-            return new Brush(null, block);
+        public static Brush outline(BlockStateProvider provider, Set<BlockState> results) {
+            return new Brush(provider, null, results, null);
+        }
+
+        public static Brush outline(BlockStateProvider provider) {
+            return Brush.outline(provider, null);
+        }
+
+        public static Brush fill(BlockStateProvider provider, Set<BlockState> results) {
+            return new Brush(null, provider, null, results);
+        }
+
+        public static Brush fill(BlockStateProvider provider) {
+            return Brush.fill(provider, null);
+        }
+
+        public BlockState provideOutline(Random random, BlockPos pos) {
+            BlockState state = this.outlineProvider.getBlockState(random, pos);
+            if (this.outlineResults != null) {
+                this.outlineResults.add(state);
+            }
+            return state;
+        }
+
+        public BlockState provideFill(Random random, BlockPos pos) {
+            BlockState state = this.fillProvider.getBlockState(random, pos);
+            if (this.fillResults != null) {
+                this.fillResults.add(state);
+            }
+            return state;
         }
     }
 }
