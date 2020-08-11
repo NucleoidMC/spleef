@@ -52,6 +52,8 @@ public final class SpleefWaiting {
                 game.setRule(GameRule.ALLOW_PVP, RuleResult.DENY);
                 game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
                 game.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
+                game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
+                game.setRule(GameRule.INTERACT, RuleResult.DENY);
 
                 game.on(RequestStartListener.EVENT, waiting::requestStart);
                 game.on(OfferPlayerListener.EVENT, waiting::offerPlayer);

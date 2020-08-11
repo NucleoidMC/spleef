@@ -63,6 +63,7 @@ public final class SpleefActive {
             game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
             game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
             game.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
+            game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 
             game.on(GameOpenListener.EVENT, active::onOpen);
             game.on(GameCloseListener.EVENT, active::onClose);
@@ -89,7 +90,7 @@ public final class SpleefActive {
     }
 
     private void addPlayer(ServerPlayerEntity player) {
-        this.spawnSpectator(player);
+        player.setGameMode(GameMode.SPECTATOR);
         this.timerBar.addPlayer(player);
     }
 
@@ -158,8 +159,9 @@ public final class SpleefActive {
     private boolean onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
         if (source == DamageSource.LAVA) {
             this.eliminatePlayer(player);
+            return true;
         }
-        return true;
+        return false;
     }
 
     private boolean onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
@@ -168,7 +170,8 @@ public final class SpleefActive {
     }
 
     private void spawnParticipant(ServerPlayerEntity player) {
-        this.spawnLogic.spawnPlayer(player, GameMode.ADVENTURE);
+        player.setGameMode(GameMode.ADVENTURE);
+        player.inventory.clear();
 
         ItemStackBuilder shovelBuilder = ItemStackBuilder.of(this.config.tool)
                 .setUnbreakable()
@@ -188,11 +191,7 @@ public final class SpleefActive {
         this.broadcastMessage(message);
         this.broadcastSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP);
 
-        this.spawnSpectator(player);
-    }
-
-    private void spawnSpectator(ServerPlayerEntity player) {
-        this.spawnLogic.spawnPlayer(player, GameMode.SPECTATOR);
+        player.setGameMode(GameMode.SPECTATOR);
     }
 
     // TODO: extract common broadcast utils into plasmid
