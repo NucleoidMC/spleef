@@ -1,11 +1,11 @@
-package net.gegy1000.spleef.game.map;
+package xyz.nucleoid.spleef.game.map;
 
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import net.gegy1000.plasmid.game.map.template.MapTemplate;
+import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;

@@ -1,10 +1,10 @@
-package net.gegy1000.spleef.game;
+package xyz.nucleoid.spleef.game;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.gegy1000.plasmid.game.config.GameConfig;
-import net.gegy1000.plasmid.game.config.PlayerConfig;
-import net.gegy1000.spleef.game.map.SpleefMapConfig;
+import xyz.nucleoid.plasmid.game.config.GameConfig;
+import xyz.nucleoid.plasmid.game.config.PlayerConfig;
+import xyz.nucleoid.spleef.game.map.SpleefMapConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 

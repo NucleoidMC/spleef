@@ -1,10 +1,10 @@
-package net.gegy1000.spleef;
+package xyz.nucleoid.spleef;
 
 import net.fabricmc.api.ModInitializer;
-import net.gegy1000.plasmid.game.GameType;
-import net.gegy1000.spleef.game.SpleefConfig;
-import net.gegy1000.spleef.game.SpleefWaiting;
-import net.gegy1000.spleef.game.map.shape.MapShapes;
+import xyz.nucleoid.plasmid.game.GameType;
+import xyz.nucleoid.spleef.game.SpleefConfig;
+import xyz.nucleoid.spleef.game.SpleefWaiting;
+import xyz.nucleoid.spleef.game.map.shape.MapShapes;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

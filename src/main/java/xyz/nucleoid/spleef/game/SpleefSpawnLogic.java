@@ -1,8 +1,8 @@
-package net.gegy1000.spleef.game;
+package xyz.nucleoid.spleef.game;
 
-import net.gegy1000.plasmid.game.GameWorld;
-import net.gegy1000.spleef.Spleef;
-import net.gegy1000.spleef.game.map.SpleefMap;
+import xyz.nucleoid.plasmid.game.GameWorld;
+import xyz.nucleoid.spleef.Spleef;
+import xyz.nucleoid.spleef.game.map.SpleefMap;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.network.ServerPlayerEntity;

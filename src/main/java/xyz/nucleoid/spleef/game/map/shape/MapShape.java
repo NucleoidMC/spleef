@@ -1,4 +1,4 @@
-package net.gegy1000.spleef.game.map.shape;
+package xyz.nucleoid.spleef.game.map.shape;
 
 import java.util.Random;
 import java.util.function.Function;
@@ -6,10 +6,10 @@ import java.util.function.Function;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 
-import net.gegy1000.plasmid.game.map.template.MapTemplate;
-import net.gegy1000.plasmid.registry.TinyRegistry;
-import net.gegy1000.plasmid.util.BlockBounds;
-import net.gegy1000.spleef.game.map.SpleefMapGenerator.Brush;
+import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
+import xyz.nucleoid.plasmid.registry.TinyRegistry;
+import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.spleef.game.map.SpleefMapGenerator.Brush;
 
 public interface MapShape {
     public static final TinyRegistry<Codec<? extends MapShape>> REGISTRY = TinyRegistry.newStable();

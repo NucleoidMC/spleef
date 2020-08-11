@@ -8,7 +8,7 @@
   "license": "LGPLv3",
   "environment": "*",
   "entrypoints": {
-    "main": ["net.gegy1000.spleef.Spleef"]
+    "main": ["xyz.nucleoid.spleef.Spleef"]
   },
   "accessWidener": "spleef.accesswidener",
   "depends": {

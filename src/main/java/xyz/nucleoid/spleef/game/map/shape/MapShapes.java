@@ -1,8 +1,8 @@
-package net.gegy1000.spleef.game.map.shape;
+package xyz.nucleoid.spleef.game.map.shape;
 
 import com.mojang.serialization.Codec;
 
-import net.gegy1000.spleef.Spleef;
+import xyz.nucleoid.spleef.Spleef;
 import net.minecraft.util.Identifier;
 
 public enum MapShapes {

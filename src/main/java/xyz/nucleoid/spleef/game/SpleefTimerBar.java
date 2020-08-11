@@ -1,4 +1,4 @@
-package net.gegy1000.spleef.game;
+package xyz.nucleoid.spleef.game;
 
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.entity.boss.ServerBossBar;

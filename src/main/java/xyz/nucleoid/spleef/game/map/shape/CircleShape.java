@@ -1,13 +1,13 @@
-package net.gegy1000.spleef.game.map.shape;
+package xyz.nucleoid.spleef.game.map.shape;
 
 import java.util.Random;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.gegy1000.plasmid.game.map.template.MapTemplate;
-import net.gegy1000.plasmid.util.BlockBounds;
-import net.gegy1000.spleef.game.map.SpleefMapGenerator.Brush;
+import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
+import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.spleef.game.map.SpleefMapGenerator.Brush;
 import net.minecraft.util.math.BlockPos;
 
 public class CircleShape implements MapShape {

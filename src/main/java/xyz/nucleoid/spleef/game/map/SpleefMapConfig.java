@@ -1,9 +1,9 @@
-package net.gegy1000.spleef.game.map;
+package xyz.nucleoid.spleef.game.map;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.gegy1000.spleef.game.map.shape.MapShape;
+import xyz.nucleoid.spleef.game.map.shape.MapShape;
 import net.minecraft.block.Blocks;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import net.minecraft.world.gen.stateprovider.SimpleBlockStateProvider;
