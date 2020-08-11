@@ -2,13 +2,12 @@ package xyz.nucleoid.spleef.game;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import xyz.nucleoid.plasmid.game.config.GameConfig;
-import xyz.nucleoid.plasmid.game.config.PlayerConfig;
-import xyz.nucleoid.spleef.game.map.SpleefMapConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import xyz.nucleoid.plasmid.game.config.PlayerConfig;
+import xyz.nucleoid.spleef.game.map.SpleefMapConfig;
 
-public final class SpleefConfig implements GameConfig {
+public final class SpleefConfig {
     public static final Codec<SpleefConfig> CODEC = RecordCodecBuilder.create(instance -> {
         return instance.group(
                 SpleefMapConfig.CODEC.fieldOf("map").forGetter(config -> config.map),

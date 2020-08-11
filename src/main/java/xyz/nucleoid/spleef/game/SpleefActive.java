@@ -1,5 +1,18 @@
 package xyz.nucleoid.spleef.game;
 
+import net.minecraft.block.BlockState;
+import net.minecraft.enchantment.Enchantments;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.GameMode;
 import xyz.nucleoid.plasmid.game.GameWorld;
 import xyz.nucleoid.plasmid.game.event.GameCloseListener;
 import xyz.nucleoid.plasmid.game.event.GameOpenListener;
@@ -14,30 +27,13 @@ import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
-import net.minecraft.block.BlockState;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.GameMode;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.Set;
 
 public final class SpleefActive {
     private final GameWorld gameWorld;
     private final SpleefMap map;
     private final SpleefConfig config;
-
-    private final Set<ServerPlayerEntity> participants;
 
     private final SpleefSpawnLogic spawnLogic;
 
@@ -47,19 +43,18 @@ public final class SpleefActive {
     private final boolean ignoreWinState;
     private long closeTime = -1;
 
-    private SpleefActive(GameWorld gameWorld, SpleefMap map, SpleefConfig config, Set<ServerPlayerEntity> participants) {
+    private SpleefActive(GameWorld gameWorld, SpleefMap map, SpleefConfig config) {
         this.gameWorld = gameWorld;
         this.map = map;
         this.config = config;
-        this.participants = new HashSet<>(participants);
 
-        this.ignoreWinState = this.participants.size() <= 1;
+        this.ignoreWinState = gameWorld.getPlayerCount() <= 1;
 
         this.spawnLogic = new SpleefSpawnLogic(gameWorld, map);
     }
 
     public static void open(GameWorld gameWorld, SpleefMap map, SpleefConfig config) {
-        SpleefActive active = new SpleefActive(gameWorld, map, config, gameWorld.getPlayers());
+        SpleefActive active = new SpleefActive(gameWorld, map, config);
 
         gameWorld.newGame(game -> {
             game.setRule(GameRule.ALLOW_CRAFTING, RuleResult.DENY);
@@ -84,8 +79,8 @@ public final class SpleefActive {
     }
 
     private void onOpen() {
-        for (ServerPlayerEntity participant : this.participants) {
-            this.spawnParticipant(participant);
+        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
+            this.spawnParticipant(player);
         }
     }
 
@@ -94,14 +89,11 @@ public final class SpleefActive {
     }
 
     private void addPlayer(ServerPlayerEntity player) {
-        if (!this.participants.contains(player)) {
-            this.spawnSpectator(player);
-        }
+        this.spawnSpectator(player);
         this.timerBar.addPlayer(player);
     }
 
     private void removePlayer(ServerPlayerEntity player) {
-        this.participants.remove(player);
         this.timerBar.removePlayer(player);
     }
 
@@ -117,7 +109,7 @@ public final class SpleefActive {
         if (this.config.decay >= 0) {
             this.map.tickDecay(world);
 
-            for (ServerPlayerEntity player : this.participants) {
+            for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
                 BlockPos landingPos = player.getLandingPos();
                 this.map.tryBeginDecayAt(world, landingPos, this.config.decay);
             }
@@ -176,8 +168,7 @@ public final class SpleefActive {
     }
 
     private void spawnParticipant(ServerPlayerEntity player) {
-        this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
-        this.spawnLogic.spawnPlayer(player);
+        this.spawnLogic.spawnPlayer(player, GameMode.ADVENTURE);
 
         ItemStackBuilder shovelBuilder = ItemStackBuilder.of(this.config.tool)
                 .setUnbreakable()
@@ -198,13 +189,10 @@ public final class SpleefActive {
         this.broadcastSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP);
 
         this.spawnSpectator(player);
-
-        this.participants.remove(player);
     }
 
     private void spawnSpectator(ServerPlayerEntity player) {
-        this.spawnLogic.resetPlayer(player, GameMode.SPECTATOR);
-        this.spawnLogic.spawnPlayer(player);
+        this.spawnLogic.spawnPlayer(player, GameMode.SPECTATOR);
     }
 
     // TODO: extract common broadcast utils into plasmid
@@ -228,13 +216,15 @@ public final class SpleefActive {
 
         ServerPlayerEntity winningPlayer = null;
 
-        for (ServerPlayerEntity player : this.participants) {
-            // we still have more than one player remaining
-            if (winningPlayer != null) {
-                return WinResult.no();
-            }
+        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
+            if (!player.isSpectator()) {
+                // we still have more than one player remaining
+                if (winningPlayer != null) {
+                    return WinResult.no();
+                }
 
-            winningPlayer = player;
+                winningPlayer = player;
+            }
         }
 
         return WinResult.win(winningPlayer);

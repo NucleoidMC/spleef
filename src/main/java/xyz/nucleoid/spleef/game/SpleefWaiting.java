@@ -1,7 +1,10 @@
 package xyz.nucleoid.spleef.game;
 
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.world.GameMode;
 import xyz.nucleoid.plasmid.game.GameWorld;
-import xyz.nucleoid.plasmid.game.GameWorldState;
 import xyz.nucleoid.plasmid.game.StartResult;
 import xyz.nucleoid.plasmid.game.event.OfferPlayerListener;
 import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
@@ -10,11 +13,9 @@ import xyz.nucleoid.plasmid.game.event.RequestStartListener;
 import xyz.nucleoid.plasmid.game.player.JoinResult;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
+import xyz.nucleoid.plasmid.game.world.bubble.BubbleWorldConfig;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 import xyz.nucleoid.spleef.game.map.SpleefMapGenerator;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.world.GameMode;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -33,11 +34,15 @@ public final class SpleefWaiting {
         this.spawnLogic = new SpleefSpawnLogic(gameWorld, map);
     }
 
-    public static CompletableFuture<Void> open(GameWorldState worldState, SpleefConfig config) {
+    public static CompletableFuture<Void> open(MinecraftServer server, SpleefConfig config) {
         SpleefMapGenerator generator = new SpleefMapGenerator(config.map);
 
         return generator.create().thenAccept(map -> {
-            GameWorld gameWorld = worldState.openWorld(map.asGenerator());
+            BubbleWorldConfig worldConfig = new BubbleWorldConfig()
+                    .setGenerator(map.asGenerator())
+                    .setDefaultGameMode(GameMode.SPECTATOR);
+
+            GameWorld gameWorld = GameWorld.open(server, worldConfig);
 
             SpleefWaiting waiting = new SpleefWaiting(gameWorld, map, config);
 
@@ -76,16 +81,11 @@ public final class SpleefWaiting {
     }
 
     private void addPlayer(ServerPlayerEntity player) {
-        this.spawnPlayer(player);
+        this.spawnLogic.spawnPlayer(player, GameMode.ADVENTURE);
     }
 
     private boolean onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
-        this.spawnPlayer(player);
+        this.spawnLogic.spawnPlayer(player, GameMode.ADVENTURE);
         return true;
-    }
-
-    private void spawnPlayer(ServerPlayerEntity player) {
-        this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
-        this.spawnLogic.spawnPlayer(player);
     }
 }
