@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMaps;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import net.minecraft.server.MinecraftServer;
 import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
 import xyz.nucleoid.plasmid.game.map.template.TemplateChunkGenerator;
 import xyz.nucleoid.plasmid.util.BlockBounds;
@@ -92,7 +93,7 @@ public final class SpleefMap {
         return this.spawn;
     }
 
-    public ChunkGenerator asGenerator() {
-        return new TemplateChunkGenerator(this.template, BlockPos.ORIGIN);
+    public ChunkGenerator asGenerator(MinecraftServer server) {
+        return new TemplateChunkGenerator(server, this.template, BlockPos.ORIGIN);
     }
 }

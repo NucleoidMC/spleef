@@ -56,7 +56,7 @@ public final class SpleefActive {
     public static void open(GameWorld gameWorld, SpleefMap map, SpleefConfig config) {
         SpleefActive active = new SpleefActive(gameWorld, map, config);
 
-        gameWorld.newGame(game -> {
+        gameWorld.openGame(game -> {
             game.setRule(GameRule.CRAFTING, RuleResult.DENY);
             game.setRule(GameRule.PORTALS, RuleResult.DENY);
             game.setRule(GameRule.PVP, RuleResult.DENY);

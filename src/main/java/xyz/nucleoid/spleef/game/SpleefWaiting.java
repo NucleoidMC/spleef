@@ -39,14 +39,14 @@ public final class SpleefWaiting {
 
         return generator.create().thenAccept(map -> {
             BubbleWorldConfig worldConfig = new BubbleWorldConfig()
-                    .setGenerator(map.asGenerator())
+                    .setGenerator(map.asGenerator(server))
                     .setDefaultGameMode(GameMode.SPECTATOR);
 
             GameWorld gameWorld = GameWorld.open(server, worldConfig);
 
             SpleefWaiting waiting = new SpleefWaiting(gameWorld, map, config);
 
-            gameWorld.newGame(game -> {
+            gameWorld.openGame(game -> {
                 game.setRule(GameRule.CRAFTING, RuleResult.DENY);
                 game.setRule(GameRule.PORTALS, RuleResult.DENY);
                 game.setRule(GameRule.PVP, RuleResult.DENY);
