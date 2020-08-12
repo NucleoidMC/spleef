@@ -47,13 +47,13 @@ public final class SpleefWaiting {
             SpleefWaiting waiting = new SpleefWaiting(gameWorld, map, config);
 
             gameWorld.newGame(game -> {
-                game.setRule(GameRule.ALLOW_CRAFTING, RuleResult.DENY);
-                game.setRule(GameRule.ALLOW_PORTALS, RuleResult.DENY);
-                game.setRule(GameRule.ALLOW_PVP, RuleResult.DENY);
+                game.setRule(GameRule.CRAFTING, RuleResult.DENY);
+                game.setRule(GameRule.PORTALS, RuleResult.DENY);
+                game.setRule(GameRule.PVP, RuleResult.DENY);
                 game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-                game.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
+                game.setRule(GameRule.HUNGER, RuleResult.DENY);
                 game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
-                game.setRule(GameRule.INTERACT, RuleResult.DENY);
+                game.setRule(GameRule.INTERACTION, RuleResult.DENY);
 
                 game.on(RequestStartListener.EVENT, waiting::requestStart);
                 game.on(OfferPlayerListener.EVENT, waiting::offerPlayer);

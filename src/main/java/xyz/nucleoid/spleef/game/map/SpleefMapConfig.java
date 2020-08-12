@@ -13,9 +13,9 @@ public final class SpleefMapConfig {
         return instance.group(
                 Codec.INT.fieldOf("levels").forGetter(config -> config.levels),
                 Codec.INT.fieldOf("level_height").forGetter(map -> map.levelHeight),
-                BlockStateProvider.CODEC.fieldOf("wall_provider").withDefault(new SimpleBlockStateProvider(Blocks.STONE_BRICKS.getDefaultState())).forGetter(config -> config.wallProvider),
-                BlockStateProvider.CODEC.fieldOf("floor_provider").withDefault(new SimpleBlockStateProvider(Blocks.SNOW_BLOCK.getDefaultState())).forGetter(config -> config.floorProvider),
-                BlockStateProvider.CODEC.fieldOf("lava_provider").withDefault(new SimpleBlockStateProvider(Blocks.LAVA.getDefaultState())).forGetter(config -> config.lavaProvider),
+                BlockStateProvider.CODEC.fieldOf("wall_provider").orElse(new SimpleBlockStateProvider(Blocks.STONE_BRICKS.getDefaultState())).forGetter(config -> config.wallProvider),
+                BlockStateProvider.CODEC.fieldOf("floor_provider").orElse(new SimpleBlockStateProvider(Blocks.SNOW_BLOCK.getDefaultState())).forGetter(config -> config.floorProvider),
+                BlockStateProvider.CODEC.fieldOf("lava_provider").orElse(new SimpleBlockStateProvider(Blocks.LAVA.getDefaultState())).forGetter(config -> config.lavaProvider),
                 MapShape.REGISTRY_CODEC.fieldOf("shape").forGetter(config -> config.shape)
         ).apply(instance, SpleefMapConfig::new);
     });

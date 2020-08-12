@@ -57,12 +57,12 @@ public final class SpleefActive {
         SpleefActive active = new SpleefActive(gameWorld, map, config);
 
         gameWorld.newGame(game -> {
-            game.setRule(GameRule.ALLOW_CRAFTING, RuleResult.DENY);
-            game.setRule(GameRule.ALLOW_PORTALS, RuleResult.DENY);
-            game.setRule(GameRule.ALLOW_PVP, RuleResult.DENY);
+            game.setRule(GameRule.CRAFTING, RuleResult.DENY);
+            game.setRule(GameRule.PORTALS, RuleResult.DENY);
+            game.setRule(GameRule.PVP, RuleResult.DENY);
             game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
             game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-            game.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
+            game.setRule(GameRule.HUNGER, RuleResult.DENY);
             game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 
             game.on(GameOpenListener.EVENT, active::onOpen);
@@ -138,7 +138,7 @@ public final class SpleefActive {
 
     private void tickClosing(GameWorld gameWorld, long time) {
         if (time >= this.closeTime) {
-            gameWorld.closeWorld();
+            gameWorld.close();
         }
     }
 
