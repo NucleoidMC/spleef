@@ -32,7 +32,7 @@ public final class SpleefMapGenerator {
 
         this.addBase(template, random);
         this.addLevels(template, map, providedFloors, random);
-        this.addWall(template, random);
+        this.addWallAndCeiling(template, random);
 
         int offset = this.config.shape.getSpawnOffset();
         map.setSpawn(new BlockPos(offset, this.config.levels * this.config.levelHeight + 2, 0));
@@ -59,13 +59,16 @@ public final class SpleefMapGenerator {
         }
     }
 
-    private void addWall(MapTemplate template, Random random) {
+    private void addWallAndCeiling(MapTemplate template, Random random) {
         Brush wallBrush = Brush.outline(this.config.wallProvider);
 
         int minY = 1;
         int maxY = (this.config.levels + 1) * this.config.levelHeight;
 
         this.config.shape.generate(template, minY, maxY, wallBrush, random);
+
+        Brush ceilingBrush = Brush.fill(this.config.ceilingProvider);
+        this.config.shape.generate(template, maxY + 1, maxY + 1, ceilingBrush, random);
     }
 
     public static final class Brush {

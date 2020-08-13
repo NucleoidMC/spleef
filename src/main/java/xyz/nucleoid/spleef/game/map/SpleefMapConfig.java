@@ -15,6 +15,7 @@ public final class SpleefMapConfig {
                 Codec.INT.fieldOf("level_height").forGetter(map -> map.levelHeight),
                 BlockStateProvider.CODEC.optionalFieldOf("wall_provider", new SimpleBlockStateProvider(Blocks.STONE_BRICKS.getDefaultState())).forGetter(config -> config.wallProvider),
                 BlockStateProvider.CODEC.optionalFieldOf("floor_provider", new SimpleBlockStateProvider(Blocks.SNOW_BLOCK.getDefaultState())).forGetter(config -> config.floorProvider),
+                BlockStateProvider.CODEC.optionalFieldOf("ceiling_provider", new SimpleBlockStateProvider(Blocks.BARRIER.getDefaultState())).forGetter(config -> config.ceilingProvider),
                 BlockStateProvider.CODEC.optionalFieldOf("lava_provider", new SimpleBlockStateProvider(Blocks.LAVA.getDefaultState())).forGetter(config -> config.lavaProvider),
                 MapShape.REGISTRY_CODEC.fieldOf("shape").forGetter(config -> config.shape)
         ).apply(instance, SpleefMapConfig::new);
@@ -24,14 +25,16 @@ public final class SpleefMapConfig {
     public final int levelHeight;
     public final BlockStateProvider wallProvider;
     public final BlockStateProvider floorProvider;
+    public final BlockStateProvider ceilingProvider;
     public final BlockStateProvider lavaProvider;
     public final MapShape shape;
 
-    public SpleefMapConfig(int levels, int levelHeight, BlockStateProvider wallProvider, BlockStateProvider floorProvider, BlockStateProvider lavaProvider, MapShape shape) {
+    public SpleefMapConfig(int levels, int levelHeight, BlockStateProvider wallProvider, BlockStateProvider floorProvider, BlockStateProvider ceilingProvider, BlockStateProvider lavaProvider, MapShape shape) {
         this.levels = levels;
         this.levelHeight = levelHeight;
         this.wallProvider = wallProvider;
         this.floorProvider = floorProvider;
+        this.ceilingProvider = ceilingProvider;
         this.lavaProvider = lavaProvider;
 		this.shape = shape;
     }
