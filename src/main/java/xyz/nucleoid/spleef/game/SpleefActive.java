@@ -10,6 +10,7 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
@@ -157,16 +158,18 @@ public final class SpleefActive {
     }
 
     private boolean onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
-        if (source == DamageSource.LAVA) {
+        if (!player.isSpectator() && source == DamageSource.LAVA) {
             this.eliminatePlayer(player);
             return true;
         }
         return false;
     }
 
-    private boolean onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
-        this.eliminatePlayer(player);
-        return true;
+    private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+        if (!player.isSpectator()) {
+            this.eliminatePlayer(player);
+        }
+        return ActionResult.FAIL;
     }
 
     private void spawnParticipant(ServerPlayerEntity player) {

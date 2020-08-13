@@ -1,9 +1,10 @@
 package xyz.nucleoid.spleef.game;
 
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameMode;
+import xyz.nucleoid.plasmid.game.GameOpenContext;
 import xyz.nucleoid.plasmid.game.GameWorld;
 import xyz.nucleoid.plasmid.game.StartResult;
 import xyz.nucleoid.plasmid.game.event.OfferPlayerListener;
@@ -34,15 +35,16 @@ public final class SpleefWaiting {
         this.spawnLogic = new SpleefSpawnLogic(gameWorld, map);
     }
 
-    public static CompletableFuture<Void> open(MinecraftServer server, SpleefConfig config) {
+    public static CompletableFuture<Void> open(GameOpenContext<SpleefConfig> context) {
+        SpleefConfig config = context.getConfig();
         SpleefMapGenerator generator = new SpleefMapGenerator(config.map);
 
         return generator.create().thenAccept(map -> {
             BubbleWorldConfig worldConfig = new BubbleWorldConfig()
-                    .setGenerator(map.asGenerator(server))
+                    .setGenerator(map.asGenerator(context.getServer()))
                     .setDefaultGameMode(GameMode.SPECTATOR);
 
-            GameWorld gameWorld = GameWorld.open(server, worldConfig);
+            GameWorld gameWorld = context.openWorld(worldConfig);
 
             SpleefWaiting waiting = new SpleefWaiting(gameWorld, map, config);
 
@@ -86,8 +88,8 @@ public final class SpleefWaiting {
         this.spawnLogic.spawnPlayer(player, GameMode.ADVENTURE);
     }
 
-    private boolean onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+    private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
         this.spawnLogic.spawnPlayer(player, GameMode.ADVENTURE);
-        return true;
+        return ActionResult.FAIL;
     }
 }
