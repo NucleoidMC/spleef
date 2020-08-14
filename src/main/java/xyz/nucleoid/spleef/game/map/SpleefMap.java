@@ -4,15 +4,16 @@ import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMaps;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import net.minecraft.server.MinecraftServer;
-import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
-import xyz.nucleoid.plasmid.game.map.template.TemplateChunkGenerator;
-import xyz.nucleoid.plasmid.util.BlockBounds;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
+import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
+import xyz.nucleoid.plasmid.game.map.template.TemplateChunkGenerator;
+import xyz.nucleoid.plasmid.util.BlockBounds;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,10 +75,34 @@ public final class SpleefMap {
             return;
         }
 
-        BlockBounds level = this.levels.get(this.topLevel);
-        this.deleteLevel(world, level);
+        int nextLevel = this.topLevel - 1;
 
-        this.topLevel--;
+        for (ServerPlayerEntity player : world.getPlayers()) {
+            if (player.isSpectator()) continue;
+
+            int playerLevel = this.getLevelFor(player);
+            if (playerLevel < nextLevel) {
+                nextLevel = playerLevel;
+            }
+        }
+
+        for (int i = this.topLevel; i > nextLevel; i--) {
+            BlockBounds level = this.levels.get(i);
+            this.deleteLevel(world, level);
+        }
+
+        this.topLevel = nextLevel;
+    }
+
+    private int getLevelFor(ServerPlayerEntity player) {
+        for (int i = this.topLevel; i >= 0; i--) {
+            BlockBounds level = this.levels.get(i);
+            int minY = level.getMin().getY();
+            if (player.getY() >= minY) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private void deleteLevel(ServerWorld world, BlockBounds level) {
