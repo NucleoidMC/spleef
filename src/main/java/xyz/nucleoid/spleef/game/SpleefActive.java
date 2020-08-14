@@ -104,6 +104,7 @@ public final class SpleefActive {
             this.map.tickDecay(world);
 
             for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
+                if (player.isSpectator()) continue;
                 BlockPos landingPos = player.getLandingPos();
                 this.map.tryBeginDecayAt(world, landingPos, this.config.decay);
             }
