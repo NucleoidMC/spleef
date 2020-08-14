@@ -1,8 +1,12 @@
 package xyz.nucleoid.spleef.game;
 
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.plasmid.game.GameOpenContext;
 import xyz.nucleoid.plasmid.game.GameWorld;
@@ -15,6 +19,7 @@ import xyz.nucleoid.plasmid.game.player.JoinResult;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
 import xyz.nucleoid.plasmid.game.world.bubble.BubbleWorldConfig;
+import xyz.nucleoid.spleef.Spleef;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 import xyz.nucleoid.spleef.game.map.SpleefMapGenerator;
 
@@ -25,14 +30,10 @@ public final class SpleefWaiting {
     private final SpleefMap map;
     private final SpleefConfig config;
 
-    private final SpleefSpawnLogic spawnLogic;
-
     private SpleefWaiting(GameWorld gameWorld, SpleefMap map, SpleefConfig config) {
         this.gameWorld = gameWorld;
         this.map = map;
         this.config = config;
-
-        this.spawnLogic = new SpleefSpawnLogic(gameWorld, map);
     }
 
     public static CompletableFuture<Void> open(GameOpenContext<SpleefConfig> context) {
@@ -85,11 +86,32 @@ public final class SpleefWaiting {
     }
 
     private void addPlayer(ServerPlayerEntity player) {
-        this.spawnLogic.spawnPlayer(player, GameMode.ADVENTURE);
+        this.spawnPlayer(player);
     }
 
     private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
-        this.spawnLogic.spawnPlayer(player, GameMode.ADVENTURE);
+        this.spawnPlayer(player);
         return ActionResult.FAIL;
+    }
+
+    private void spawnPlayer(ServerPlayerEntity player) {
+        player.addStatusEffect(new StatusEffectInstance(
+                StatusEffects.NIGHT_VISION,
+                20 * 60 * 60,
+                1,
+                true,
+                false
+        ));
+
+        ServerWorld world = this.gameWorld.getWorld();
+
+        BlockPos pos = this.map.getSpawn();
+        if (pos == null) {
+            Spleef.LOGGER.warn("Cannot spawn player! No spawn is defined in the map!");
+            return;
+        }
+
+        player.setGameMode(GameMode.ADVENTURE);
+        player.teleport(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 0.0F, 0.0F);
     }
 }

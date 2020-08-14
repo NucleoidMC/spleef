@@ -29,7 +29,7 @@ dependencies {
 
 	implementation 'com.google.code.findbugs:jsr305:3.0.1'
 
-	modImplementation 'xyz.nucleoid:plasmid:0.1.0+build.72'
+	modImplementation 'xyz.nucleoid:plasmid:0.2.1'
 
 	modRuntime ("com.github.SuperCoder7979:databreaker:0.2.6") {
 		exclude module : "fabric-loader"

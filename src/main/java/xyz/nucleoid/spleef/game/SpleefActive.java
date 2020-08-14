@@ -15,7 +15,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.plasmid.game.GameWorld;
-import xyz.nucleoid.plasmid.game.event.GameCloseListener;
 import xyz.nucleoid.plasmid.game.event.GameOpenListener;
 import xyz.nucleoid.plasmid.game.event.GameTickListener;
 import xyz.nucleoid.plasmid.game.event.OfferPlayerListener;
@@ -36,9 +35,7 @@ public final class SpleefActive {
     private final SpleefMap map;
     private final SpleefConfig config;
 
-    private final SpleefSpawnLogic spawnLogic;
-
-    private final SpleefTimerBar timerBar = new SpleefTimerBar();
+    private final SpleefTimerBar timerBar;
     private long nextLevelDropTime = -1;
 
     private final boolean ignoreWinState;
@@ -51,7 +48,7 @@ public final class SpleefActive {
 
         this.ignoreWinState = gameWorld.getPlayerCount() <= 1;
 
-        this.spawnLogic = new SpleefSpawnLogic(gameWorld, map);
+        this.timerBar = gameWorld.addResource(new SpleefTimerBar());
     }
 
     public static void open(GameWorld gameWorld, SpleefMap map, SpleefConfig config) {
@@ -67,7 +64,6 @@ public final class SpleefActive {
             game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 
             game.on(GameOpenListener.EVENT, active::onOpen);
-            game.on(GameCloseListener.EVENT, active::onClose);
 
             game.on(OfferPlayerListener.EVENT, player -> JoinResult.ok());
             game.on(PlayerAddListener.EVENT, active::addPlayer);
@@ -84,10 +80,6 @@ public final class SpleefActive {
         for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
             this.spawnParticipant(player);
         }
-    }
-
-    private void onClose() {
-        this.timerBar.close();
     }
 
     private void addPlayer(ServerPlayerEntity player) {
