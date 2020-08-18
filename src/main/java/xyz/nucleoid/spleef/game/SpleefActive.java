@@ -129,12 +129,12 @@ public final class SpleefActive {
             }
         }
         
-        if (time > this.restockTime && this.config.projectile.isEnabled()) {
+        if (time > this.restockTime && this.config.projectile.isPresent()) {
             if (this.restockTime != -1) {
                 this.restockProjectiles();
             }
 
-            this.restockTime = time + this.config.projectile.getRestockInterval();
+            this.restockTime = time + this.config.projectile.get().getRestockInterval();
         }
 
         WinResult result = this.checkWinResult();
@@ -151,11 +151,12 @@ public final class SpleefActive {
     }
     
     private void restockProjectiles() {
-        ItemStack projectileStack = this.config.projectile.getStack();
+        ProjectileConfig projectileConfig = this.config.projectile.get();
+        ItemStack projectileStack = projectileConfig.getStack();
 
         for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
             if (player.isSpectator()) continue;
-            if (player.inventory.count(projectileStack.getItem()) >= this.config.projectile.getMaximum()) continue;
+            if (player.inventory.count(projectileStack.getItem()) >= projectileConfig.getMaximum()) continue;
 
             player.inventory.insertStack(projectileStack.copy());
             player.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1, 1);
@@ -169,9 +170,11 @@ public final class SpleefActive {
     }
 
     private ActionResult onBlockHit(BlockHitResult hitResult) {
-        if (!this.config.projectile.isEnabled()) return ActionResult.FAIL;
+        if (!this.config.projectile.isPresent()) return ActionResult.FAIL;
 
-        int radius = this.config.projectile.getRadius();
+        ProjectileConfig projectileConfig = this.config.projectile.get();
+
+        int radius = projectileConfig.getRadius();
         if (radius <= 0) return ActionResult.PASS;
 
         ServerWorld world = this.gameWorld.getWorld();
@@ -180,7 +183,7 @@ public final class SpleefActive {
         if (radius == 1) {
             this.breakFloorBlock(world, breakPos);
         } else {
-            int innerRadius = this.config.projectile.getInnerRadius();
+            int innerRadius = projectileConfig.getInnerRadius();
 
             int radiusSquared = radius * radius;
             int innerRadiusSquared = innerRadius * innerRadius;

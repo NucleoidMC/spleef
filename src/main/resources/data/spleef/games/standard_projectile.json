@@ -8,9 +8,7 @@
     "levels": 4,
     "level_height": 5
   },
-  "projectile": {
-    "enabled": true
-  },
+  "projectile": {},
   "players": {
     "min": 1,
     "max": 100
