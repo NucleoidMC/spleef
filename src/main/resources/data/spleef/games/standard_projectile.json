@@ -1,0 +1,18 @@
+{
+  "type": "spleef:spleef",
+  "map": {
+    "shape": {
+      "type": "spleef:circle",
+      "radius": 16
+    },
+    "levels": 4,
+    "level_height": 5
+  },
+  "projectile": {
+    "enabled": true
+  },
+  "players": {
+    "min": 1,
+    "max": 100
+  }
+}

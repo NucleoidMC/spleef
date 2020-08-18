@@ -3,6 +3,7 @@ package xyz.nucleoid.spleef.game;
 import net.minecraft.block.BlockState;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -12,9 +13,11 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.plasmid.game.GameWorld;
+import xyz.nucleoid.plasmid.game.event.BlockHitListener;
 import xyz.nucleoid.plasmid.game.event.GameOpenListener;
 import xyz.nucleoid.plasmid.game.event.GameTickListener;
 import xyz.nucleoid.plasmid.game.event.OfferPlayerListener;
@@ -37,6 +40,8 @@ public final class SpleefActive {
 
     private final SpleefTimerBar timerBar;
     private long nextLevelDropTime = -1;
+
+    private long restockTime = -1;
 
     private final boolean ignoreWinState;
     private long closeTime = -1;
@@ -70,6 +75,7 @@ public final class SpleefActive {
             game.on(PlayerRemoveListener.EVENT, active::removePlayer);
 
             game.on(GameTickListener.EVENT, active::tick);
+            game.on(BlockHitListener.EVENT, active::onBlockHit);
 
             game.on(PlayerDamageListener.EVENT, active::onPlayerDamage);
             game.on(PlayerDeathListener.EVENT, active::onPlayerDeath);
@@ -122,6 +128,14 @@ public final class SpleefActive {
                 this.timerBar.update(ticksToDrop, this.config.levelBreakInterval);
             }
         }
+        
+        if (time > this.restockTime && this.config.projectile.isEnabled()) {
+            if (this.restockTime != -1) {
+                this.restockProjectiles();
+            }
+
+            this.restockTime = time + this.config.projectile.getRestockInterval();
+        }
 
         WinResult result = this.checkWinResult();
         if (result.isWin()) {
@@ -134,6 +148,30 @@ public final class SpleefActive {
         if (time >= this.closeTime) {
             gameWorld.close();
         }
+    }
+    
+    private void restockProjectiles() {
+        ItemStack projectileStack = this.config.projectile.getStack();
+
+        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
+            if (player.isSpectator()) continue;
+            if (player.inventory.count(projectileStack.getItem()) >= this.config.projectile.getMaximum()) continue;
+
+            player.inventory.insertStack(projectileStack.copy());
+            player.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1, 1);
+        }
+    }
+
+    private ActionResult onBlockHit(BlockHitResult hitResult) {
+        if (!this.config.projectile.isEnabled()) return ActionResult.FAIL;
+
+        ServerWorld world = this.gameWorld.getWorld();
+        BlockPos pos = hitResult.getBlockPos();
+
+        if (this.map.providedFloors.contains(world.getBlockState(pos))) {
+            world.breakBlock(pos, false);
+        }
+        return ActionResult.PASS;
     }
 
     private void broadcastWin(WinResult result) {
