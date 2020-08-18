@@ -12,7 +12,9 @@ public class ProjectileConfig {
                 Codec.BOOL.optionalFieldOf("enabled", false).forGetter(ProjectileConfig::isEnabled),
                 ItemStack.CODEC.optionalFieldOf("stack", new ItemStack(Items.SNOWBALL)).forGetter(ProjectileConfig::getStack),
                 Codec.INT.optionalFieldOf("restock_interval", 6 * 20).forGetter(ProjectileConfig::getRestockInterval),
-                Codec.INT.optionalFieldOf("maximum", 5).forGetter(ProjectileConfig::getMaximum)
+                Codec.INT.optionalFieldOf("maximum", 5).forGetter(ProjectileConfig::getMaximum),
+                Codec.INT.optionalFieldOf("radius", 1).forGetter(ProjectileConfig::getRadius),
+                Codec.INT.optionalFieldOf("inner_radius", 0).forGetter(ProjectileConfig::getInnerRadius)
         ).apply(instance, ProjectileConfig::new);
     });
 
@@ -20,16 +22,20 @@ public class ProjectileConfig {
     private final ItemStack stack;
     private final int restockInterval;
     private final int maximum;
+    private final int radius;
+    private final int innerRadius;
 
-    public ProjectileConfig(boolean enabled, ItemStack stack, int restockInterval, int maximum) {
+    public ProjectileConfig(boolean enabled, ItemStack stack, int restockInterval, int maximum, int radius, int innerRadius) {
         this.enabled = enabled;
         this.stack = stack;
         this.restockInterval = restockInterval;
         this.maximum = maximum;
+        this.radius = radius;
+        this.innerRadius = innerRadius;
     }
     
     public ProjectileConfig() {
-        this(false, ItemStack.EMPTY, 0, 0);
+        this(false, ItemStack.EMPTY, 0, 0, 0, 0);
     }
 
     public boolean isEnabled() {
@@ -46,5 +52,13 @@ public class ProjectileConfig {
 
     public int getMaximum() {
         return this.maximum;
-    };
+    }
+    
+    public int getRadius() {
+        return this.radius;
+    }
+    
+    public int getInnerRadius() {
+        return this.innerRadius;
+    }
 }

@@ -162,15 +162,38 @@ public final class SpleefActive {
         }
     }
 
-    private ActionResult onBlockHit(BlockHitResult hitResult) {
-        if (!this.config.projectile.isEnabled()) return ActionResult.FAIL;
-
-        ServerWorld world = this.gameWorld.getWorld();
-        BlockPos pos = hitResult.getBlockPos();
-
+    private void breakFloorBlock(ServerWorld world, BlockPos pos) {
         if (this.map.providedFloors.contains(world.getBlockState(pos))) {
             world.breakBlock(pos, false);
         }
+    }
+
+    private ActionResult onBlockHit(BlockHitResult hitResult) {
+        if (!this.config.projectile.isEnabled()) return ActionResult.FAIL;
+
+        int radius = this.config.projectile.getRadius();
+        if (radius <= 0) return ActionResult.PASS;
+
+        ServerWorld world = this.gameWorld.getWorld();
+        BlockPos breakPos = hitResult.getBlockPos();
+
+        if (radius == 1) {
+            this.breakFloorBlock(world, breakPos);
+        } else {
+            int innerRadius = this.config.projectile.getInnerRadius();
+
+            int radiusSquared = radius * radius;
+            int innerRadiusSquared = innerRadius * innerRadius;
+
+            for (BlockPos pos : BlockPos.iterate(new BlockPos(-radius, 0, -radius), new BlockPos(radius, 0, radius))) {
+                int distance = pos.getX() * pos.getX() + pos.getZ() * pos.getZ();
+                if (distance >= radiusSquared) continue;
+                if (distance < innerRadiusSquared && innerRadius > 0) continue;
+
+                this.breakFloorBlock(world, pos.add(breakPos));
+            }
+        }
+    
         return ActionResult.PASS;
     }
 
