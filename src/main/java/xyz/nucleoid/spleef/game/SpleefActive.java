@@ -3,6 +3,7 @@ package xyz.nucleoid.spleef.game;
 import net.minecraft.block.BlockState;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -12,9 +13,11 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.plasmid.game.GameWorld;
+import xyz.nucleoid.plasmid.game.event.BlockHitListener;
 import xyz.nucleoid.plasmid.game.event.GameOpenListener;
 import xyz.nucleoid.plasmid.game.event.GameTickListener;
 import xyz.nucleoid.plasmid.game.event.OfferPlayerListener;
@@ -37,6 +40,8 @@ public final class SpleefActive {
 
     private final SpleefTimerBar timerBar;
     private long nextLevelDropTime = -1;
+
+    private long restockTime = -1;
 
     private final boolean ignoreWinState;
     private long closeTime = -1;
@@ -70,6 +75,7 @@ public final class SpleefActive {
             game.on(PlayerRemoveListener.EVENT, active::removePlayer);
 
             game.on(GameTickListener.EVENT, active::tick);
+            game.on(BlockHitListener.EVENT, active::onBlockHit);
 
             game.on(PlayerDamageListener.EVENT, active::onPlayerDamage);
             game.on(PlayerDeathListener.EVENT, active::onPlayerDeath);
@@ -122,6 +128,14 @@ public final class SpleefActive {
                 this.timerBar.update(ticksToDrop, this.config.levelBreakInterval);
             }
         }
+        
+        if (time > this.restockTime && this.config.projectile.isPresent()) {
+            if (this.restockTime != -1) {
+                this.restockProjectiles();
+            }
+
+            this.restockTime = time + this.config.projectile.get().getRestockInterval();
+        }
 
         WinResult result = this.checkWinResult();
         if (result.isWin()) {
@@ -134,6 +148,56 @@ public final class SpleefActive {
         if (time >= this.closeTime) {
             gameWorld.close();
         }
+    }
+    
+    private void restockProjectiles() {
+        ProjectileConfig projectileConfig = this.config.projectile.get();
+        ItemStack projectileStack = projectileConfig.getStack();
+
+        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
+            if (player.isSpectator()) continue;
+            if (player.inventory.count(projectileStack.getItem()) >= projectileConfig.getMaximum()) continue;
+
+            player.inventory.insertStack(projectileStack.copy());
+            player.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1, 1);
+        }
+    }
+
+    private void breakFloorBlock(ServerWorld world, BlockPos pos) {
+        if (this.map.providedFloors.contains(world.getBlockState(pos))) {
+            world.breakBlock(pos, false);
+        }
+    }
+
+    private ActionResult onBlockHit(BlockHitResult hitResult) {
+        if (!this.config.projectile.isPresent()) return ActionResult.FAIL;
+
+        ProjectileConfig projectileConfig = this.config.projectile.get();
+
+        int radius = projectileConfig.getRadius();
+        if (radius <= 0) return ActionResult.PASS;
+
+        ServerWorld world = this.gameWorld.getWorld();
+        BlockPos breakPos = hitResult.getBlockPos();
+
+        if (radius == 1) {
+            this.breakFloorBlock(world, breakPos);
+        } else {
+            int innerRadius = projectileConfig.getInnerRadius();
+
+            int radiusSquared = radius * radius;
+            int innerRadiusSquared = innerRadius * innerRadius;
+
+            for (BlockPos pos : BlockPos.iterate(new BlockPos(-radius, 0, -radius), new BlockPos(radius, 0, radius))) {
+                int distance = pos.getX() * pos.getX() + pos.getZ() * pos.getZ();
+                if (distance >= radiusSquared) continue;
+                if (distance < innerRadiusSquared && innerRadius > 0) continue;
+
+                this.breakFloorBlock(world, pos.add(breakPos));
+            }
+        }
+    
+        return ActionResult.PASS;
     }
 
     private void broadcastWin(WinResult result) {
