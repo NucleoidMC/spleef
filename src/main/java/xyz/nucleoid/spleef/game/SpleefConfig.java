@@ -14,7 +14,8 @@ public final class SpleefConfig {
                 PlayerConfig.CODEC.fieldOf("players").forGetter(config -> config.players),
                 ItemStack.CODEC.optionalFieldOf("tool", new ItemStack(Items.DIAMOND_SHOVEL)).forGetter(config -> config.tool),
                 Codec.LONG.optionalFieldOf("level_break_interval", 20L * 60).forGetter(config -> config.levelBreakInterval),
-                Codec.INT.optionalFieldOf("decay", -1).forGetter(config -> config.decay)
+                Codec.INT.optionalFieldOf("decay", -1).forGetter(config -> config.decay),
+                Codec.INT.optionalFieldOf("time_of_day", 6000).forGetter(config -> config.timeOfDay)
         ).apply(instance, SpleefConfig::new);
     });
 
@@ -26,17 +27,21 @@ public final class SpleefConfig {
     public final long levelBreakInterval;
     public final int decay;
 
+    public final int timeOfDay;
+
     public SpleefConfig(
             SpleefMapConfig map,
             PlayerConfig players,
             ItemStack tool,
             long levelBreakInterval,
-            int decay
+            int decay,
+            int timeOfDay
     ) {
         this.map = map;
         this.players = players;
         this.tool = tool;
         this.levelBreakInterval = levelBreakInterval;
         this.decay = decay;
+        this.timeOfDay = timeOfDay;
     }
 }

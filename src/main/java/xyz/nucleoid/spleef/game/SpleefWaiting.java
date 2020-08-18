@@ -18,7 +18,7 @@ import xyz.nucleoid.plasmid.game.event.RequestStartListener;
 import xyz.nucleoid.plasmid.game.player.JoinResult;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
-import xyz.nucleoid.plasmid.game.world.bubble.BubbleWorldConfig;
+import xyz.nucleoid.plasmid.world.bubble.BubbleWorldConfig;
 import xyz.nucleoid.spleef.Spleef;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 import xyz.nucleoid.spleef.game.map.SpleefMapGenerator;
@@ -36,33 +36,36 @@ public final class SpleefWaiting {
         this.config = config;
     }
 
-    public static CompletableFuture<Void> open(GameOpenContext<SpleefConfig> context) {
+    public static CompletableFuture<GameWorld> open(GameOpenContext<SpleefConfig> context) {
         SpleefConfig config = context.getConfig();
         SpleefMapGenerator generator = new SpleefMapGenerator(config.map);
 
-        return generator.create().thenAccept(map -> {
+        return generator.create().thenCompose(map -> {
             BubbleWorldConfig worldConfig = new BubbleWorldConfig()
                     .setGenerator(map.asGenerator(context.getServer()))
-                    .setDefaultGameMode(GameMode.SPECTATOR);
+                    .setDefaultGameMode(GameMode.SPECTATOR)
+                    .setTimeOfDay(config.timeOfDay);
 
-            GameWorld gameWorld = context.openWorld(worldConfig);
+            return context.openWorld(worldConfig).thenApply(gameWorld -> {
+                SpleefWaiting waiting = new SpleefWaiting(gameWorld, map, config);
 
-            SpleefWaiting waiting = new SpleefWaiting(gameWorld, map, config);
+                gameWorld.openGame(game -> {
+                    game.setRule(GameRule.CRAFTING, RuleResult.DENY);
+                    game.setRule(GameRule.PORTALS, RuleResult.DENY);
+                    game.setRule(GameRule.PVP, RuleResult.DENY);
+                    game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
+                    game.setRule(GameRule.HUNGER, RuleResult.DENY);
+                    game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
+                    game.setRule(GameRule.INTERACTION, RuleResult.DENY);
 
-            gameWorld.openGame(game -> {
-                game.setRule(GameRule.CRAFTING, RuleResult.DENY);
-                game.setRule(GameRule.PORTALS, RuleResult.DENY);
-                game.setRule(GameRule.PVP, RuleResult.DENY);
-                game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-                game.setRule(GameRule.HUNGER, RuleResult.DENY);
-                game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
-                game.setRule(GameRule.INTERACTION, RuleResult.DENY);
+                    game.on(RequestStartListener.EVENT, waiting::requestStart);
+                    game.on(OfferPlayerListener.EVENT, waiting::offerPlayer);
 
-                game.on(RequestStartListener.EVENT, waiting::requestStart);
-                game.on(OfferPlayerListener.EVENT, waiting::offerPlayer);
+                    game.on(PlayerAddListener.EVENT, waiting::addPlayer);
+                    game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
+                });
 
-                game.on(PlayerAddListener.EVENT, waiting::addPlayer);
-                game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
+                return gameWorld;
             });
         });
     }
@@ -77,12 +80,12 @@ public final class SpleefWaiting {
 
     private StartResult requestStart() {
         if (this.gameWorld.getPlayerCount() < this.config.players.getMinPlayers()) {
-            return StartResult.notEnoughPlayers();
+            return StartResult.NOT_ENOUGH_PLAYERS;
         }
 
         SpleefActive.open(this.gameWorld, this.map, this.config);
 
-        return StartResult.ok();
+        return StartResult.OK;
     }
 
     private void addPlayer(ServerPlayerEntity player) {
