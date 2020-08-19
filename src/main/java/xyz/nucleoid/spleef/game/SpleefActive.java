@@ -7,7 +7,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
@@ -17,15 +16,9 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.plasmid.game.GameWorld;
-import xyz.nucleoid.plasmid.game.event.BlockHitListener;
-import xyz.nucleoid.plasmid.game.event.GameOpenListener;
-import xyz.nucleoid.plasmid.game.event.GameTickListener;
-import xyz.nucleoid.plasmid.game.event.OfferPlayerListener;
-import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
-import xyz.nucleoid.plasmid.game.event.PlayerDamageListener;
-import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
-import xyz.nucleoid.plasmid.game.event.PlayerRemoveListener;
+import xyz.nucleoid.plasmid.game.event.*;
 import xyz.nucleoid.plasmid.game.player.JoinResult;
+import xyz.nucleoid.plasmid.game.player.PlayerSet;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
@@ -53,7 +46,7 @@ public final class SpleefActive {
 
         this.ignoreWinState = gameWorld.getPlayerCount() <= 1;
 
-        this.timerBar = gameWorld.addResource(new SpleefTimerBar());
+        this.timerBar = gameWorld.addResource(new SpleefTimerBar(gameWorld));
     }
 
     public static void open(GameWorld gameWorld, SpleefMap map, SpleefConfig config) {
@@ -72,7 +65,6 @@ public final class SpleefActive {
 
             game.on(OfferPlayerListener.EVENT, player -> JoinResult.ok());
             game.on(PlayerAddListener.EVENT, active::addPlayer);
-            game.on(PlayerRemoveListener.EVENT, active::removePlayer);
 
             game.on(GameTickListener.EVENT, active::tick);
             game.on(BlockHitListener.EVENT, active::onBlockHit);
@@ -90,11 +82,6 @@ public final class SpleefActive {
 
     private void addPlayer(ServerPlayerEntity player) {
         player.setGameMode(GameMode.SPECTATOR);
-        this.timerBar.addPlayer(player);
-    }
-
-    private void removePlayer(ServerPlayerEntity player) {
-        this.timerBar.removePlayer(player);
     }
 
     private void tick() {
@@ -131,7 +118,7 @@ public final class SpleefActive {
         
         if (time > this.restockTime && this.config.projectile.isPresent()) {
             if (this.restockTime != -1) {
-                this.restockProjectiles();
+                this.restockProjectiles(this.config.projectile.get());
             }
 
             this.restockTime = time + this.config.projectile.get().getRestockInterval();
@@ -150,8 +137,7 @@ public final class SpleefActive {
         }
     }
     
-    private void restockProjectiles() {
-        ProjectileConfig projectileConfig = this.config.projectile.get();
+    private void restockProjectiles(ProjectileConfig projectileConfig) {
         ItemStack projectileStack = projectileConfig.getStack();
 
         for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
@@ -210,8 +196,9 @@ public final class SpleefActive {
             message = new LiteralText("The game ended, but nobody won!").formatted(Formatting.GOLD);
         }
 
-        this.broadcastMessage(message);
-        this.broadcastSound(SoundEvents.ENTITY_VILLAGER_YES);
+        PlayerSet players = this.gameWorld.getPlayerSet();
+        players.sendMessage(message);
+        players.sendSound(SoundEvents.ENTITY_VILLAGER_YES);
     }
 
     private boolean onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
@@ -248,23 +235,11 @@ public final class SpleefActive {
         Text message = player.getDisplayName().shallowCopy().append(" has been eliminated!")
                 .formatted(Formatting.RED);
 
-        this.broadcastMessage(message);
-        this.broadcastSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP);
+        PlayerSet players = this.gameWorld.getPlayerSet();
+        players.sendMessage(message);
+        players.sendSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP);
 
         player.setGameMode(GameMode.SPECTATOR);
-    }
-
-    // TODO: extract common broadcast utils into plasmid
-    private void broadcastMessage(Text message) {
-        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
-            player.sendMessage(message, false);
-        }
-    }
-
-    private void broadcastSound(SoundEvent sound) {
-        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
-            player.playSound(sound, SoundCategory.PLAYERS, 1.0F, 1.0F);
-        }
     }
 
     private WinResult checkWinResult() {
@@ -275,7 +250,7 @@ public final class SpleefActive {
 
         ServerPlayerEntity winningPlayer = null;
 
-        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
+        for (ServerPlayerEntity player : this.gameWorld.getPlayerSet()) {
             if (!player.isSpectator()) {
                 // we still have more than one player remaining
                 if (winningPlayer != null) {

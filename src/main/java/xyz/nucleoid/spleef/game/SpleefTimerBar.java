@@ -1,36 +1,24 @@
 package xyz.nucleoid.spleef.game;
 
 import net.minecraft.entity.boss.BossBar;
-import net.minecraft.entity.boss.ServerBossBar;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import xyz.nucleoid.plasmid.game.GameWorld;
+import xyz.nucleoid.plasmid.widget.BossBarWidget;
 
 public final class SpleefTimerBar implements AutoCloseable {
-    private final ServerBossBar bar;
+    private final BossBarWidget bar;
 
-    public SpleefTimerBar() {
+    SpleefTimerBar(GameWorld gameWorld) {
         LiteralText title = new LiteralText("Dropping in...");
-
-        this.bar = new ServerBossBar(title, BossBar.Color.GREEN, BossBar.Style.NOTCHED_10);
-        this.bar.setDarkenSky(false);
-        this.bar.setDragonMusic(false);
-        this.bar.setThickenFog(false);
+        this.bar = BossBarWidget.open(gameWorld.getPlayerSet(), title, BossBar.Color.GREEN, BossBar.Style.NOTCHED_10);
     }
 
     public void update(long ticksUntilDrop, long totalTicksUntilDrop) {
         if (ticksUntilDrop % 20 == 0) {
-            this.bar.setName(this.getText(ticksUntilDrop));
-            this.bar.setPercent((float) ticksUntilDrop / totalTicksUntilDrop);
+            this.bar.setTitle(this.getText(ticksUntilDrop));
+            this.bar.setProgress((float) ticksUntilDrop / totalTicksUntilDrop);
         }
-    }
-
-    public void addPlayer(ServerPlayerEntity player) {
-        this.bar.addPlayer(player);
-    }
-
-    public void removePlayer(ServerPlayerEntity player) {
-        this.bar.removePlayer(player);
     }
 
     private Text getText(long ticksUntilDrop) {
@@ -45,7 +33,6 @@ public final class SpleefTimerBar implements AutoCloseable {
 
     @Override
     public void close() {
-        this.bar.clearPlayers();
-        this.bar.setVisible(false);
+        this.bar.close();
     }
 }
