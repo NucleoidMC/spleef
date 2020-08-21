@@ -76,7 +76,7 @@ public final class SpleefMap {
         }
 
         int maxNextLevel = this.topLevel - 1;
-        int nextLevel = 0;
+        int nextLevel = -1;
 
         for (ServerPlayerEntity player : world.getPlayers()) {
             if (player.isSpectator()) continue;
