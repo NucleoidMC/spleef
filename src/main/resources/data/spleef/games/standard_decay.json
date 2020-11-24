@@ -1,5 +1,6 @@
 {
   "type": "spleef:spleef",
+  "name": "Spleef with Decay",
   "map": {
     "shape": {
       "type": "spleef:circle",

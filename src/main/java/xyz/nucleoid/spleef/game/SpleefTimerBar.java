@@ -6,7 +6,7 @@ import net.minecraft.text.Text;
 import xyz.nucleoid.plasmid.widget.BossBarWidget;
 import xyz.nucleoid.plasmid.widget.GlobalWidgets;
 
-public final class SpleefTimerBar implements AutoCloseable {
+public final class SpleefTimerBar {
     private final BossBarWidget widget;
 
     SpleefTimerBar(BossBarWidget widget) {
@@ -33,10 +33,5 @@ public final class SpleefTimerBar implements AutoCloseable {
         String time = String.format("%02d:%02d", minutes, seconds);
 
         return new LiteralText("Dropping in: " + time + "...");
-    }
-
-    @Override
-    public void close() {
-        this.widget.close();
     }
 }
