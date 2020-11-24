@@ -8,66 +8,64 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
+import xyz.nucleoid.fantasy.BubbleWorldConfig;
 import xyz.nucleoid.plasmid.game.GameOpenContext;
+import xyz.nucleoid.plasmid.game.GameOpenProcedure;
+import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.GameWaitingLobby;
-import xyz.nucleoid.plasmid.game.GameWorld;
 import xyz.nucleoid.plasmid.game.StartResult;
 import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
 import xyz.nucleoid.plasmid.game.event.RequestStartListener;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
-import xyz.nucleoid.plasmid.world.bubble.BubbleWorldConfig;
 import xyz.nucleoid.spleef.Spleef;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 import xyz.nucleoid.spleef.game.map.SpleefMapGenerator;
 
-import java.util.concurrent.CompletableFuture;
-
 public final class SpleefWaiting {
-    private final GameWorld gameWorld;
+    private final GameSpace gameSpace;
     private final SpleefMap map;
     private final SpleefConfig config;
 
-    private SpleefWaiting(GameWorld gameWorld, SpleefMap map, SpleefConfig config) {
-        this.gameWorld = gameWorld;
+    private SpleefWaiting(GameSpace gameSpace, SpleefMap map, SpleefConfig config) {
+        this.gameSpace = gameSpace;
         this.map = map;
         this.config = config;
     }
 
-    public static CompletableFuture<GameWorld> open(GameOpenContext<SpleefConfig> context) {
+    public static GameOpenProcedure open(GameOpenContext<SpleefConfig> context) {
         SpleefConfig config = context.getConfig();
         SpleefMapGenerator generator = new SpleefMapGenerator(config.map);
+        SpleefMap map = generator.build();
 
-        return generator.create().thenCompose(map -> {
-            BubbleWorldConfig worldConfig = new BubbleWorldConfig()
-                    .setGenerator(map.asGenerator(context.getServer()))
-                    .setDefaultGameMode(GameMode.SPECTATOR)
-                    .setTimeOfDay(config.timeOfDay);
+        BubbleWorldConfig worldConfig = new BubbleWorldConfig()
+                .setGenerator(map.asGenerator(context.getServer()))
+                .setDefaultGameMode(GameMode.SPECTATOR)
+                .setTimeOfDay(config.timeOfDay);
 
-            return context.openWorld(worldConfig).thenApply(gameWorld -> {
-                SpleefWaiting waiting = new SpleefWaiting(gameWorld, map, config);
+        return context.createOpenProcedure(worldConfig, game -> {
+            GameWaitingLobby.applyTo(game, config.players);
 
-                return GameWaitingLobby.open(gameWorld, config.players, game -> {
-                    game.setRule(GameRule.CRAFTING, RuleResult.DENY);
-                    game.setRule(GameRule.PORTALS, RuleResult.DENY);
-                    game.setRule(GameRule.PVP, RuleResult.DENY);
-                    game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-                    game.setRule(GameRule.HUNGER, RuleResult.DENY);
-                    game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
-                    game.setRule(GameRule.INTERACTION, RuleResult.DENY);
+            SpleefWaiting waiting = new SpleefWaiting(game.getSpace(), map, config);
 
-                    game.on(RequestStartListener.EVENT, waiting::requestStart);
+            game.setRule(GameRule.CRAFTING, RuleResult.DENY);
+            game.setRule(GameRule.PORTALS, RuleResult.DENY);
+            game.setRule(GameRule.PVP, RuleResult.DENY);
+            game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
+            game.setRule(GameRule.HUNGER, RuleResult.DENY);
+            game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
+            game.setRule(GameRule.INTERACTION, RuleResult.DENY);
 
-                    game.on(PlayerAddListener.EVENT, waiting::addPlayer);
-                    game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
-                });
-            });
+            game.on(RequestStartListener.EVENT, waiting::requestStart);
+
+            game.on(PlayerAddListener.EVENT, waiting::addPlayer);
+            game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
         });
     }
 
     private StartResult requestStart() {
-        SpleefActive.open(this.gameWorld, this.map, this.config);
+        SpleefActive.open(this.gameSpace, this.map, this.config);
         return StartResult.OK;
     }
 
@@ -89,7 +87,7 @@ public final class SpleefWaiting {
                 false
         ));
 
-        ServerWorld world = this.gameWorld.getWorld();
+        ServerWorld world = this.gameSpace.getWorld();
 
         BlockPos pos = this.map.getSpawn();
         if (pos == null) {

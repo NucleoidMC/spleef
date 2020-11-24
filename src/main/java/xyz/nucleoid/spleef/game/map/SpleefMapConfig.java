@@ -13,10 +13,10 @@ public final class SpleefMapConfig {
         return instance.group(
                 Codec.INT.fieldOf("levels").forGetter(config -> config.levels),
                 Codec.INT.fieldOf("level_height").forGetter(map -> map.levelHeight),
-                BlockStateProvider.CODEC.optionalFieldOf("wall_provider", new SimpleBlockStateProvider(Blocks.STONE_BRICKS.getDefaultState())).forGetter(config -> config.wallProvider),
-                BlockStateProvider.CODEC.optionalFieldOf("floor_provider", new SimpleBlockStateProvider(Blocks.SNOW_BLOCK.getDefaultState())).forGetter(config -> config.floorProvider),
-                BlockStateProvider.CODEC.optionalFieldOf("ceiling_provider", new SimpleBlockStateProvider(Blocks.BARRIER.getDefaultState())).forGetter(config -> config.ceilingProvider),
-                BlockStateProvider.CODEC.optionalFieldOf("lava_provider", new SimpleBlockStateProvider(Blocks.LAVA.getDefaultState())).forGetter(config -> config.lavaProvider),
+                BlockStateProvider.TYPE_CODEC.optionalFieldOf("wall_provider", new SimpleBlockStateProvider(Blocks.STONE_BRICKS.getDefaultState())).forGetter(config -> config.wallProvider),
+                BlockStateProvider.TYPE_CODEC.optionalFieldOf("floor_provider", new SimpleBlockStateProvider(Blocks.SNOW_BLOCK.getDefaultState())).forGetter(config -> config.floorProvider),
+                BlockStateProvider.TYPE_CODEC.optionalFieldOf("ceiling_provider", new SimpleBlockStateProvider(Blocks.BARRIER.getDefaultState())).forGetter(config -> config.ceilingProvider),
+                BlockStateProvider.TYPE_CODEC.optionalFieldOf("lava_provider", new SimpleBlockStateProvider(Blocks.LAVA.getDefaultState())).forGetter(config -> config.lavaProvider),
                 MapShape.REGISTRY_CODEC.fieldOf("shape").forGetter(config -> config.shape)
         ).apply(instance, SpleefMapConfig::new);
     });

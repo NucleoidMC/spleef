@@ -11,8 +11,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
-import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
-import xyz.nucleoid.plasmid.game.map.template.TemplateChunkGenerator;
+import xyz.nucleoid.plasmid.map.template.MapTemplate;
+import xyz.nucleoid.plasmid.map.template.TemplateChunkGenerator;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 
 import java.util.ArrayList;
@@ -107,7 +107,7 @@ public final class SpleefMap {
     }
 
     private void deleteLevel(ServerWorld world, BlockBounds level) {
-        for (BlockPos pos : level.iterate()) {
+        for (BlockPos pos : level) {
             BlockState state = world.getBlockState(pos);
             if (this.providedFloors.contains(state)) {
                 world.setBlockState(pos, Blocks.AIR.getDefaultState());
@@ -120,6 +120,6 @@ public final class SpleefMap {
     }
 
     public ChunkGenerator asGenerator(MinecraftServer server) {
-        return new TemplateChunkGenerator(server, this.template, BlockPos.ORIGIN);
+        return new TemplateChunkGenerator(server, this.template);
     }
 }

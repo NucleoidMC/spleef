@@ -1,15 +1,13 @@
 package xyz.nucleoid.spleef.game.map;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
-import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
+import xyz.nucleoid.plasmid.map.template.MapTemplate;
 
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 public final class SpleefMapGenerator {
     private final SpleefMapConfig config;
@@ -18,11 +16,7 @@ public final class SpleefMapGenerator {
         this.config = config;
     }
 
-    public CompletableFuture<SpleefMap> create() {
-        return CompletableFuture.supplyAsync(this::build, Util.getMainWorkerExecutor());
-    }
-
-    private SpleefMap build() {
+    public SpleefMap build() {
         MapTemplate template = MapTemplate.createEmpty();
 
         Set<BlockState> providedFloors = new HashSet<>();

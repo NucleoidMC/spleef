@@ -1,14 +1,13 @@
 package xyz.nucleoid.spleef.game.map.shape;
 
-import java.util.Random;
-
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-
-import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
+import net.minecraft.util.math.BlockPos;
+import xyz.nucleoid.plasmid.map.template.MapTemplate;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 import xyz.nucleoid.spleef.game.map.SpleefMapGenerator.Brush;
-import net.minecraft.util.math.BlockPos;
+
+import java.util.Random;
 
 public class CircleShape implements MapShape {
     public static final Codec<CircleShape> CODEC = RecordCodecBuilder.create(instance -> {

@@ -1,8 +1,10 @@
 package xyz.nucleoid.spleef.game;
 
+import com.sun.istack.internal.Nullable;
 import net.minecraft.block.BlockState;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -15,19 +17,24 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
-import xyz.nucleoid.plasmid.game.GameWorld;
-import xyz.nucleoid.plasmid.game.event.*;
+import xyz.nucleoid.plasmid.game.GameSpace;
+import xyz.nucleoid.plasmid.game.event.BlockHitListener;
+import xyz.nucleoid.plasmid.game.event.GameOpenListener;
+import xyz.nucleoid.plasmid.game.event.GameTickListener;
+import xyz.nucleoid.plasmid.game.event.OfferPlayerListener;
+import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
+import xyz.nucleoid.plasmid.game.event.PlayerDamageListener;
+import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
 import xyz.nucleoid.plasmid.game.player.JoinResult;
 import xyz.nucleoid.plasmid.game.player.PlayerSet;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
+import xyz.nucleoid.plasmid.widget.GlobalWidgets;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 
-import javax.annotation.Nullable;
-
 public final class SpleefActive {
-    private final GameWorld gameWorld;
+    private final GameSpace gameSpace;
     private final SpleefMap map;
     private final SpleefConfig config;
 
@@ -39,20 +46,22 @@ public final class SpleefActive {
     private final boolean ignoreWinState;
     private long closeTime = -1;
 
-    private SpleefActive(GameWorld gameWorld, SpleefMap map, SpleefConfig config) {
-        this.gameWorld = gameWorld;
+    private SpleefActive(GameSpace gameSpace, SpleefMap map, SpleefConfig config, GlobalWidgets widgets) {
+        this.gameSpace = gameSpace;
         this.map = map;
         this.config = config;
 
-        this.ignoreWinState = gameWorld.getPlayerCount() <= 1;
+        this.ignoreWinState = gameSpace.getPlayerCount() <= 1;
 
-        this.timerBar = gameWorld.addResource(new SpleefTimerBar(gameWorld));
+        this.timerBar = SpleefTimerBar.create(widgets);
     }
 
-    public static void open(GameWorld gameWorld, SpleefMap map, SpleefConfig config) {
-        SpleefActive active = new SpleefActive(gameWorld, map, config);
+    public static void open(GameSpace gameSpace, SpleefMap map, SpleefConfig config) {
+        gameSpace.openGame(game -> {
+            GlobalWidgets widgets = new GlobalWidgets(game);
 
-        gameWorld.openGame(game -> {
+            SpleefActive active = new SpleefActive(gameSpace, map, config, widgets);
+
             game.setRule(GameRule.CRAFTING, RuleResult.DENY);
             game.setRule(GameRule.PORTALS, RuleResult.DENY);
             game.setRule(GameRule.PVP, RuleResult.DENY);
@@ -75,7 +84,7 @@ public final class SpleefActive {
     }
 
     private void onOpen() {
-        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
+        for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
             this.spawnParticipant(player);
         }
     }
@@ -85,18 +94,18 @@ public final class SpleefActive {
     }
 
     private void tick() {
-        ServerWorld world = this.gameWorld.getWorld();
+        ServerWorld world = this.gameSpace.getWorld();
         long time = world.getTime();
 
         if (this.closeTime > 0) {
-            this.tickClosing(this.gameWorld, time);
+            this.tickClosing(this.gameSpace, time);
             return;
         }
 
         if (this.config.decay >= 0) {
             this.map.tickDecay(world);
 
-            for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
+            for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
                 if (player.isSpectator()) continue;
                 BlockPos landingPos = player.getLandingPos();
                 this.map.tryBeginDecayAt(world, landingPos, this.config.decay);
@@ -115,7 +124,7 @@ public final class SpleefActive {
                 this.timerBar.update(ticksToDrop, this.config.levelBreakInterval);
             }
         }
-        
+
         if (time > this.restockTime && this.config.projectile.isPresent()) {
             if (this.restockTime != -1) {
                 this.restockProjectiles(this.config.projectile.get());
@@ -131,16 +140,16 @@ public final class SpleefActive {
         }
     }
 
-    private void tickClosing(GameWorld gameWorld, long time) {
+    private void tickClosing(GameSpace gameSpace, long time) {
         if (time >= this.closeTime) {
-            gameWorld.close();
+            gameSpace.close();
         }
     }
-    
+
     private void restockProjectiles(ProjectileConfig projectileConfig) {
         ItemStack projectileStack = projectileConfig.getStack();
 
-        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
+        for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
             if (player.isSpectator()) continue;
             if (player.inventory.count(projectileStack.getItem()) >= projectileConfig.getMaximum()) continue;
 
@@ -155,7 +164,7 @@ public final class SpleefActive {
         }
     }
 
-    private ActionResult onBlockHit(BlockHitResult hitResult) {
+    private ActionResult onBlockHit(ProjectileEntity entity, BlockHitResult hitResult) {
         if (!this.config.projectile.isPresent()) return ActionResult.FAIL;
 
         ProjectileConfig projectileConfig = this.config.projectile.get();
@@ -163,7 +172,7 @@ public final class SpleefActive {
         int radius = projectileConfig.getRadius();
         if (radius <= 0) return ActionResult.PASS;
 
-        ServerWorld world = this.gameWorld.getWorld();
+        ServerWorld world = this.gameSpace.getWorld();
         BlockPos breakPos = hitResult.getBlockPos();
 
         if (radius == 1) {
@@ -182,7 +191,7 @@ public final class SpleefActive {
                 this.breakFloorBlock(world, pos.add(breakPos));
             }
         }
-    
+
         return ActionResult.PASS;
     }
 
@@ -196,17 +205,17 @@ public final class SpleefActive {
             message = new LiteralText("The game ended, but nobody won!").formatted(Formatting.GOLD);
         }
 
-        PlayerSet players = this.gameWorld.getPlayerSet();
+        PlayerSet players = this.gameSpace.getPlayers();
         players.sendMessage(message);
         players.sendSound(SoundEvents.ENTITY_VILLAGER_YES);
     }
 
-    private boolean onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
+    private ActionResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
         if (!player.isSpectator() && source == DamageSource.LAVA) {
             this.eliminatePlayer(player);
-            return true;
+            return ActionResult.FAIL;
         }
-        return false;
+        return ActionResult.PASS;
     }
 
     private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
@@ -235,7 +244,7 @@ public final class SpleefActive {
         Text message = player.getDisplayName().shallowCopy().append(" has been eliminated!")
                 .formatted(Formatting.RED);
 
-        PlayerSet players = this.gameWorld.getPlayerSet();
+        PlayerSet players = this.gameSpace.getPlayers();
         players.sendMessage(message);
         players.sendSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP);
 
@@ -250,7 +259,7 @@ public final class SpleefActive {
 
         ServerPlayerEntity winningPlayer = null;
 
-        for (ServerPlayerEntity player : this.gameWorld.getPlayerSet()) {
+        for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
             if (!player.isSpectator()) {
                 // we still have more than one player remaining
                 if (winningPlayer != null) {

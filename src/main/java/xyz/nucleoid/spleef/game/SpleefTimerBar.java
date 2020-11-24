@@ -3,21 +3,25 @@ package xyz.nucleoid.spleef.game;
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
-import xyz.nucleoid.plasmid.game.GameWorld;
 import xyz.nucleoid.plasmid.widget.BossBarWidget;
+import xyz.nucleoid.plasmid.widget.GlobalWidgets;
 
 public final class SpleefTimerBar implements AutoCloseable {
-    private final BossBarWidget bar;
+    private final BossBarWidget widget;
 
-    SpleefTimerBar(GameWorld gameWorld) {
+    SpleefTimerBar(BossBarWidget widget) {
+        this.widget = widget;
+    }
+
+    static SpleefTimerBar create(GlobalWidgets widgets) {
         LiteralText title = new LiteralText("Dropping in...");
-        this.bar = BossBarWidget.open(gameWorld.getPlayerSet(), title, BossBar.Color.GREEN, BossBar.Style.NOTCHED_10);
+        return new SpleefTimerBar(widgets.addBossBar(title, BossBar.Color.GREEN, BossBar.Style.NOTCHED_10));
     }
 
     public void update(long ticksUntilDrop, long totalTicksUntilDrop) {
         if (ticksUntilDrop % 20 == 0) {
-            this.bar.setTitle(this.getText(ticksUntilDrop));
-            this.bar.setProgress((float) ticksUntilDrop / totalTicksUntilDrop);
+            this.widget.setTitle(this.getText(ticksUntilDrop));
+            this.widget.setProgress((float) ticksUntilDrop / totalTicksUntilDrop);
         }
     }
 
@@ -33,6 +37,6 @@ public final class SpleefTimerBar implements AutoCloseable {
 
     @Override
     public void close() {
-        this.bar.close();
+        this.widget.close();
     }
 }
