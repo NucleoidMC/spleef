@@ -15,6 +15,7 @@ import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.GameWaitingLobby;
 import xyz.nucleoid.plasmid.game.StartResult;
 import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
+import xyz.nucleoid.plasmid.game.event.PlayerDamageListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
 import xyz.nucleoid.plasmid.game.event.RequestStartListener;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
@@ -60,6 +61,7 @@ public final class SpleefWaiting {
             game.on(RequestStartListener.EVENT, waiting::requestStart);
 
             game.on(PlayerAddListener.EVENT, waiting::addPlayer);
+            game.on(PlayerDamageListener.EVENT, waiting::onPlayerDamage);
             game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
         });
     }
@@ -71,6 +73,10 @@ public final class SpleefWaiting {
 
     private void addPlayer(ServerPlayerEntity player) {
         this.spawnPlayer(player);
+    }
+
+    private ActionResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
+        return ActionResult.FAIL;
     }
 
     private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
