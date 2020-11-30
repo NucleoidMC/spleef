@@ -7,6 +7,7 @@ import net.minecraft.util.Identifier;
 
 public enum MapShapes {
     CIRCLE("circle", CircleShape.CODEC),
+    PATTERN("pattern", PatternShape.CODEC),
     SQUARE("square", SquareShape.CODEC);
 
     private MapShapes(String path, Codec<? extends MapShape> codec) {
