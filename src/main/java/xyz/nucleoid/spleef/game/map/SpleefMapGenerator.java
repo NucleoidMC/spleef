@@ -20,7 +20,7 @@ public final class SpleefMapGenerator {
         MapTemplate template = MapTemplate.createEmpty();
 
         Set<BlockState> providedFloors = new HashSet<>();
-        SpleefMap map = new SpleefMap(template, providedFloors);
+        SpleefMap map = new SpleefMap(template, this.config, providedFloors);
 
         Random random = new Random();
 
@@ -31,6 +31,7 @@ public final class SpleefMapGenerator {
         int offset = this.config.shape.getSpawnOffset();
         map.setSpawn(new BlockPos(offset, this.config.levels * this.config.levelHeight + 2, 0));
 
+        map.collectProvidedFloorBlocks();
         return map;
     }
 
