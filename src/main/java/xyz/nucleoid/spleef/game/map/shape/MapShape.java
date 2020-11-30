@@ -17,7 +17,10 @@ public interface MapShape {
     public void generate(MapTemplate template, int minY, int maxY, Brush brush, Random random);
     public BlockBounds getLevelBounds(int y);
 
-    public default int getSpawnOffset() {
+    public default int getSpawnOffsetX() {
+        return 0;
+    }
+    public default int getSpawnOffsetZ() {
         return 0;
     }
 

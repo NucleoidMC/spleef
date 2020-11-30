@@ -28,8 +28,9 @@ public final class SpleefMapGenerator {
         this.addLevels(template, map, providedFloors, random);
         this.addWallAndCeiling(template, random);
 
-        int offset = this.config.shape.getSpawnOffset();
-        map.setSpawn(new BlockPos(offset, this.config.levels * this.config.levelHeight + 2, 0));
+        int offsetX = this.config.shape.getSpawnOffsetX();
+        int offsetZ = this.config.shape.getSpawnOffsetZ();
+        map.setSpawn(new BlockPos(offsetX, this.config.levels * this.config.levelHeight + 2, offsetZ));
 
         map.collectProvidedFloorBlocks();
         return map;

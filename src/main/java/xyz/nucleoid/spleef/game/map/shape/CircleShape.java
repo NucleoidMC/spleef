@@ -67,7 +67,7 @@ public class CircleShape implements MapShape {
     }
 
     @Override
-    public int getSpawnOffset() {
+    public int getSpawnOffsetX() {
         return this.innerRadius + 1;
     }
 
