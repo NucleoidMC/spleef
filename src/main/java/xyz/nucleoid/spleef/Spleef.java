@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import xyz.nucleoid.plasmid.game.GameType;
 import xyz.nucleoid.spleef.game.SpleefConfig;
 import xyz.nucleoid.spleef.game.SpleefWaiting;
-import xyz.nucleoid.spleef.game.map.shape.MapShapes;
+import xyz.nucleoid.spleef.game.map.shape.renderer.*;
 
 public final class Spleef implements ModInitializer {
     public static final String ID = "spleef";
@@ -21,6 +21,8 @@ public final class Spleef implements ModInitializer {
                 SpleefConfig.CODEC
         );
 
-        MapShapes.initialize();
+        MapShapeRenderer.REGISTRY.register(new Identifier(Spleef.ID, "circle"), CircleShapeRenderer.CODEC);
+        MapShapeRenderer.REGISTRY.register(new Identifier(Spleef.ID, "square"), SquareShapeRenderer.CODEC);
+        MapShapeRenderer.REGISTRY.register(new Identifier(Spleef.ID, "pattern"), PatternShapeRenderer.CODEC);
     }
 }

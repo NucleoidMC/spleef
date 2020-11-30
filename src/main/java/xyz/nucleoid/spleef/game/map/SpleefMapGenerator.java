@@ -1,13 +1,12 @@
 package xyz.nucleoid.spleef.game.map;
 
-import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import xyz.nucleoid.plasmid.map.template.MapTemplate;
+import xyz.nucleoid.spleef.game.map.shape.SpleefShape;
+import xyz.nucleoid.spleef.game.map.shape.ShapeCanvas;
+import xyz.nucleoid.spleef.game.map.shape.ShapePlacer;
 
-import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
 
 public final class SpleefMapGenerator {
     private final SpleefMapConfig config;
@@ -19,107 +18,48 @@ public final class SpleefMapGenerator {
     public SpleefMap build() {
         MapTemplate template = MapTemplate.createEmpty();
 
-        Set<BlockState> providedFloors = new HashSet<>();
-        SpleefMap map = new SpleefMap(template, this.config, providedFloors);
+        SpleefMap map = new SpleefMap(template);
 
-        Random random = new Random();
+        ShapeCanvas canvas = new ShapeCanvas();
+        this.config.shape.renderTo(canvas);
 
-        this.addBase(template, random);
-        this.addLevels(template, map, providedFloors, random);
-        this.addWallAndCeiling(template, random);
+        SpleefShape shape = canvas.render();
+        this.buildFromShape(template, map, shape);
 
         int offsetX = this.config.shape.getSpawnOffsetX();
         int offsetZ = this.config.shape.getSpawnOffsetZ();
         map.setSpawn(new BlockPos(offsetX, this.config.levels * this.config.levelHeight + 2, offsetZ));
 
-        map.collectProvidedFloorBlocks();
         return map;
     }
 
-    private void addBase(MapTemplate template, Random random) {
-        BlockStateProvider wallProvider = this.config.wallProvider;
-        BlockStateProvider lavaProvider = this.config.lavaProvider;
+    private void buildFromShape(MapTemplate template, SpleefMap map, SpleefShape shape) {
+        Random random = new Random();
 
-        this.config.shape.generate(template, 0, 0, Brush.fill(wallProvider), random);
-        this.config.shape.generate(template, 1, 1, new Brush(wallProvider, lavaProvider), random);
-        this.config.shape.generate(template, 1, this.config.levelHeight + 1, Brush.outline(wallProvider), random);
-    }
+        ShapePlacer floor = new ShapePlacer(template, this.config.floorProvider, random);
+        ShapePlacer walls = new ShapePlacer(template, this.config.wallProvider, random);
+        ShapePlacer lava = new ShapePlacer(template, this.config.lavaProvider, random);
+        ShapePlacer ceiling = new ShapePlacer(template, this.config.ceilingProvider, random);
 
-    private void addLevels(MapTemplate template, SpleefMap map, Set<BlockState> providedFloors, Random random) {
-        Brush brush = new Brush(this.config.wallProvider, this.config.floorProvider, null, providedFloors);
+        // base
+        walls.fill(shape, 0, 0);
+        lava.fill(shape, 1, 1);
 
+        // walls
+        int ceilingY = (this.config.levels + 1) * this.config.levelHeight;
+        walls.outline(shape, 1, ceilingY);
+
+        // ceiling
+        ceiling.fill(shape, ceilingY + 1, ceilingY + 1);
+
+        // levels
         for (int level = 0; level < this.config.levels; level++) {
             int y = (level + 1) * this.config.levelHeight + 1;
-            this.config.shape.generate(template, y, y, brush, random);
-            map.addLevel(this.config.shape.getLevelBounds(y));
-        }
-    }
+            floor.fill(shape, y, y);
 
-    private void addWallAndCeiling(MapTemplate template, Random random) {
-        Brush wallBrush = Brush.outline(this.config.wallProvider);
-
-        int minY = 1;
-        int maxY = (this.config.levels + 1) * this.config.levelHeight;
-
-        this.config.shape.generate(template, minY, maxY, wallBrush, random);
-
-        Brush ceilingBrush = Brush.fill(this.config.ceilingProvider);
-        this.config.shape.generate(template, maxY + 1, maxY + 1, ceilingBrush, random);
-    }
-
-    public static final class Brush {
-        public final BlockStateProvider outlineProvider;
-        public final BlockStateProvider fillProvider;
-
-        public final Set<BlockState> outlineResults;
-        public final Set<BlockState> fillResults;
-
-        public Brush(BlockStateProvider outlineProvider, BlockStateProvider fillProvider, Set<BlockState> outlineResults, Set<BlockState> fillResults) {
-            this.outlineProvider = outlineProvider;
-            this.fillProvider = fillProvider;
-
-            if (outlineProvider == null && fillProvider == null) {
-                throw new IllegalArgumentException("null brush");
-            }
-
-            this.outlineResults = outlineResults;
-            this.fillResults = fillResults;
+            map.addLevel(shape, y);
         }
 
-        public Brush(BlockStateProvider outlineProvider, BlockStateProvider fillProvider) {
-            this(outlineProvider, fillProvider, null, null);
-        }
-
-        public static Brush outline(BlockStateProvider provider, Set<BlockState> results) {
-            return new Brush(provider, null, results, null);
-        }
-
-        public static Brush outline(BlockStateProvider provider) {
-            return Brush.outline(provider, null);
-        }
-
-        public static Brush fill(BlockStateProvider provider, Set<BlockState> results) {
-            return new Brush(null, provider, null, results);
-        }
-
-        public static Brush fill(BlockStateProvider provider) {
-            return Brush.fill(provider, null);
-        }
-
-        public BlockState provideOutline(Random random, BlockPos pos) {
-            BlockState state = this.outlineProvider.getBlockState(random, pos);
-            if (this.outlineResults != null) {
-                this.outlineResults.add(state);
-            }
-            return state;
-        }
-
-        public BlockState provideFill(Random random, BlockPos pos) {
-            BlockState state = this.fillProvider.getBlockState(random, pos);
-            if (this.fillResults != null) {
-                this.fillResults.add(state);
-            }
-            return state;
-        }
+        map.providedFloors.addAll(floor.getUsedStates());
     }
 }
