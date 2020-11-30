@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMaps;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.MinecraftServer;
@@ -18,10 +19,13 @@ import xyz.nucleoid.plasmid.util.BlockBounds;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class SpleefMap {
     private final MapTemplate template;
+    private final SpleefMapConfig config;
     public final Set<BlockState> providedFloors;
+    private Set<Block> providedFloorBlocks;
 
     private final List<BlockBounds> levels = new ArrayList<>();
     private int topLevel;
@@ -30,9 +34,14 @@ public final class SpleefMap {
 
     private BlockPos spawn = BlockPos.ORIGIN;
 
-    public SpleefMap(MapTemplate template, Set<BlockState> providedFloors) {
+    public SpleefMap(MapTemplate template, SpleefMapConfig config, Set<BlockState> providedFloors) {
         this.template = template;
+        this.config = config;
         this.providedFloors = providedFloors;
+    }
+    
+    public void collectProvidedFloorBlocks() {
+        this.providedFloorBlocks = providedFloors.stream().map(state -> state.getBlock()).collect(Collectors.toSet());
     }
 
     public void addLevel(BlockBounds bounds) {
@@ -65,7 +74,7 @@ public final class SpleefMap {
     }
 
     public void tryBeginDecayAt(ServerWorld world, BlockPos pos, int timer) {
-        if (this.providedFloors.contains(world.getBlockState(pos))) {
+        if (this.isFloorForDelete(world.getBlockState(pos))) {
             this.decayPositions.putIfAbsent(pos.asLong(), timer);
         }
     }
@@ -106,10 +115,18 @@ public final class SpleefMap {
         return -1;
     }
 
+    private boolean isFloorForDelete(BlockState state) {
+        if (this.config.checkBlockForLevelDelete) {
+            return this.providedFloorBlocks.contains(state.getBlock());
+        } else {
+            return this.providedFloors.contains(state);
+        }
+    }
+
     private void deleteLevel(ServerWorld world, BlockBounds level) {
         for (BlockPos pos : level) {
             BlockState state = world.getBlockState(pos);
-            if (this.providedFloors.contains(state)) {
+            if (this.isFloorForDelete(state)) {
                 world.setBlockState(pos, Blocks.AIR.getDefaultState());
             }
         }

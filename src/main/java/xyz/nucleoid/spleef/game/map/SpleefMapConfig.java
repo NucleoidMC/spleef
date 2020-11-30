@@ -13,6 +13,7 @@ public final class SpleefMapConfig {
         return instance.group(
                 Codec.INT.fieldOf("levels").forGetter(config -> config.levels),
                 Codec.INT.fieldOf("level_height").forGetter(map -> map.levelHeight),
+                Codec.BOOL.optionalFieldOf("check_block_for_level_delete", false).forGetter(map -> map.checkBlockForLevelDelete),
                 BlockStateProvider.TYPE_CODEC.optionalFieldOf("wall_provider", new SimpleBlockStateProvider(Blocks.STONE_BRICKS.getDefaultState())).forGetter(config -> config.wallProvider),
                 BlockStateProvider.TYPE_CODEC.optionalFieldOf("floor_provider", new SimpleBlockStateProvider(Blocks.SNOW_BLOCK.getDefaultState())).forGetter(config -> config.floorProvider),
                 BlockStateProvider.TYPE_CODEC.optionalFieldOf("ceiling_provider", new SimpleBlockStateProvider(Blocks.BARRIER.getDefaultState())).forGetter(config -> config.ceilingProvider),
@@ -23,19 +24,21 @@ public final class SpleefMapConfig {
 
     public final int levels;
     public final int levelHeight;
+    public final boolean checkBlockForLevelDelete;
     public final BlockStateProvider wallProvider;
     public final BlockStateProvider floorProvider;
     public final BlockStateProvider ceilingProvider;
     public final BlockStateProvider lavaProvider;
     public final MapShape shape;
 
-    public SpleefMapConfig(int levels, int levelHeight, BlockStateProvider wallProvider, BlockStateProvider floorProvider, BlockStateProvider ceilingProvider, BlockStateProvider lavaProvider, MapShape shape) {
+    public SpleefMapConfig(int levels, int levelHeight, boolean checkBlockForLevelDelete, BlockStateProvider wallProvider, BlockStateProvider floorProvider, BlockStateProvider ceilingProvider, BlockStateProvider lavaProvider, MapShape shape) {
         this.levels = levels;
         this.levelHeight = levelHeight;
+        this.checkBlockForLevelDelete = checkBlockForLevelDelete;
         this.wallProvider = wallProvider;
         this.floorProvider = floorProvider;
         this.ceilingProvider = ceilingProvider;
         this.lavaProvider = lavaProvider;
-		this.shape = shape;
+        this.shape = shape;
     }
 }
