@@ -1,25 +1,17 @@
 package xyz.nucleoid.spleef.game.map.shape;
 
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
-import xyz.nucleoid.plasmid.map.template.MapTemplate;
 
 import java.util.Random;
-import java.util.Set;
 
-public final class ShapePlacer {
-    private final MapTemplate template;
-    private final BlockStateProvider provider;
-    private final Random random;
-
-    private final Set<BlockState> usedStates = new ReferenceOpenHashSet<>();
+public abstract class ShapePlacer {
+    protected final BlockStateProvider provider;
+    protected final Random random;
 
     private final BlockPos.Mutable mutablePos = new BlockPos.Mutable();
 
-    public ShapePlacer(MapTemplate template, BlockStateProvider provider, Random random) {
-        this.template = template;
+    public ShapePlacer(BlockStateProvider provider, Random random) {
         this.provider = provider;
         this.random = random;
     }
@@ -33,21 +25,20 @@ public final class ShapePlacer {
     }
 
     private void setStack(int minY, int maxY, int x, int z) {
-        this.mutablePos.set(x, 0, z);
+        this.mutablePos.set(x + this.getOffsetX(), 0, z + this.getOffsetZ());
         for (int y = minY; y <= maxY; y++) {
             this.mutablePos.setY(y);
             this.set(this.mutablePos);
         }
     }
-
-    private void set(BlockPos pos) {
-        BlockState state = this.provider.getBlockState(this.random, pos);
-        this.usedStates.add(state);
-
-        this.template.setBlockState(pos, state);
+    
+    public int getOffsetX() {
+        return 0;
     }
 
-    public Set<BlockState> getUsedStates() {
-        return this.usedStates;
+    public int getOffsetZ() {
+        return 0;
     }
+
+    public abstract void set(BlockPos pos);
 }

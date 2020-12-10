@@ -3,6 +3,7 @@ package xyz.nucleoid.spleef.game.map;
 import net.minecraft.util.math.BlockPos;
 import xyz.nucleoid.plasmid.map.template.MapTemplate;
 import xyz.nucleoid.spleef.game.map.shape.SpleefShape;
+import xyz.nucleoid.spleef.game.map.shape.MapShapePlacer;
 import xyz.nucleoid.spleef.game.map.shape.ShapeCanvas;
 import xyz.nucleoid.spleef.game.map.shape.ShapePlacer;
 
@@ -36,10 +37,10 @@ public final class SpleefMapGenerator {
     private void buildFromShape(MapTemplate template, SpleefMap map, SpleefShape shape) {
         Random random = new Random();
 
-        ShapePlacer floor = new ShapePlacer(template, this.config.floorProvider, random);
-        ShapePlacer walls = new ShapePlacer(template, this.config.wallProvider, random);
-        ShapePlacer lava = new ShapePlacer(template, this.config.lavaProvider, random);
-        ShapePlacer ceiling = new ShapePlacer(template, this.config.ceilingProvider, random);
+        MapShapePlacer floor = new MapShapePlacer(template, this.config.floorProvider, random);
+        ShapePlacer walls = new MapShapePlacer(template, this.config.wallProvider, random);
+        ShapePlacer lava = new MapShapePlacer(template, this.config.lavaProvider, random);
+        ShapePlacer ceiling = new MapShapePlacer(template, this.config.ceilingProvider, random);
 
         int baseHeight = 2;
 
