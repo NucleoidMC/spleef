@@ -19,7 +19,7 @@ public final class SpleefConfig {
                 Codec.LONG.optionalFieldOf("level_break_interval", 20L * 60).forGetter(config -> config.levelBreakInterval),
                 Codec.INT.optionalFieldOf("decay", -1).forGetter(config -> config.decay),
                 Codec.INT.optionalFieldOf("time_of_day", 6000).forGetter(config -> config.timeOfDay),
-                Codec.BOOL.optionalFieldOf("auto_explode", false).forGetter(config -> config.auto_explode)
+                Codec.BOOL.optionalFieldOf("unstableTnt", false).forGetter(config -> config.unstableTnt)
         ).apply(instance, SpleefConfig::new);
     });
 
@@ -35,7 +35,7 @@ public final class SpleefConfig {
 
     public final int timeOfDay;
 
-    public final boolean auto_explode;
+    public final boolean unstableTnt;
 
     public SpleefConfig(
             SpleefMapConfig map,
@@ -45,7 +45,7 @@ public final class SpleefConfig {
             long levelBreakInterval,
             int decay,
             int timeOfDay,
-            boolean auto_explode
+            boolean unstableTnt
     ) {
         this.map = map;
         this.players = players;
@@ -54,6 +54,6 @@ public final class SpleefConfig {
         this.levelBreakInterval = levelBreakInterval;
         this.decay = decay;
         this.timeOfDay = timeOfDay;
-        this.auto_explode = auto_explode;
+        this.unstableTnt = unstableTnt;
     }
 }
