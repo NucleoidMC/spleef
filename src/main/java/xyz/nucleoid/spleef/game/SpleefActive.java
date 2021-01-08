@@ -72,6 +72,7 @@ public final class SpleefActive {
 
             if (config.auto_explode) {
                 game.setRule(GameRule.UNSTABLE_TNT, RuleResult.ALLOW);
+                game.setRule(GameRule.PVP, RuleResult.ALLOW);
             }
 
             game.on(GameOpenListener.EVENT, active::onOpen);
