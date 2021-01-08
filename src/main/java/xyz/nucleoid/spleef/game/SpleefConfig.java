@@ -19,7 +19,7 @@ public final class SpleefConfig {
                 Codec.LONG.optionalFieldOf("level_break_interval", 20L * 60).forGetter(config -> config.levelBreakInterval),
                 Codec.INT.optionalFieldOf("decay", -1).forGetter(config -> config.decay),
                 Codec.INT.optionalFieldOf("time_of_day", 6000).forGetter(config -> config.timeOfDay),
-                Codec.BOOL.optionalFieldOf("unstableTnt", false).forGetter(config -> config.unstableTnt)
+                Codec.BOOL.optionalFieldOf("unstable_tnt", false).forGetter(config -> config.unstableTnt)
         ).apply(instance, SpleefConfig::new);
     });
 
