@@ -70,6 +70,11 @@ public final class SpleefActive {
             game.setRule(GameRule.HUNGER, RuleResult.DENY);
             game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 
+            if (config.unstableTnt) {
+                game.setRule(GameRule.UNSTABLE_TNT, RuleResult.ALLOW);
+                game.setRule(GameRule.PVP, RuleResult.ALLOW);
+            }
+
             game.on(GameOpenListener.EVENT, active::onOpen);
 
             game.on(OfferPlayerListener.EVENT, player -> JoinResult.ok());
