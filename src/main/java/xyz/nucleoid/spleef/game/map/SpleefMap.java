@@ -151,6 +151,10 @@ public final class SpleefMap {
     }
 
     public void tickLavaRise(ServerWorld world, long time, LavaRiseConfig config) {
+        if (this.topLevel >= 0) {
+            return;
+        }
+
         if (this.lavaShape == null || time - this.lastLavaRise < config.getTicksPerLevel()) {
             return;
         }
