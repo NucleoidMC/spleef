@@ -117,6 +117,11 @@ public final class SpleefActive {
             }
         }
 
+        LavaRiseConfig lavaRise = this.config.lavaRise;
+        if (lavaRise != null) {
+            this.map.tickLavaRise(world, time, lavaRise);
+        }
+
         if (time > this.nextLevelDropTime) {
             if (this.nextLevelDropTime != -1) {
                 this.map.tryDropLevel(world);
@@ -130,12 +135,12 @@ public final class SpleefActive {
             }
         }
 
-        if (time > this.restockTime && this.config.projectile.isPresent()) {
+        if (time > this.restockTime && this.config.projectile != null) {
             if (this.restockTime != -1) {
-                this.restockProjectiles(this.config.projectile.get());
+                this.restockProjectiles(this.config.projectile);
             }
 
-            this.restockTime = time + this.config.projectile.get().getRestockInterval();
+            this.restockTime = time + this.config.projectile.getRestockInterval();
         }
 
         WinResult result = this.checkWinResult();
@@ -170,9 +175,9 @@ public final class SpleefActive {
     }
 
     private ActionResult onBlockHit(ProjectileEntity entity, BlockHitResult hitResult) {
-        if (!this.config.projectile.isPresent()) return ActionResult.FAIL;
+        if (this.config.projectile == null) return ActionResult.FAIL;
 
-        ProjectileConfig projectileConfig = this.config.projectile.get();
+        ProjectileConfig projectileConfig = this.config.projectile;
 
         int radius = projectileConfig.getRadius();
         if (radius <= 0) return ActionResult.PASS;

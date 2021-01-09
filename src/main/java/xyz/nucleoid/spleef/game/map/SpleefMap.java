@@ -14,13 +14,16 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import xyz.nucleoid.plasmid.map.template.MapTemplate;
 import xyz.nucleoid.plasmid.map.template.TemplateChunkGenerator;
 import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.spleef.game.LavaRiseConfig;
 import xyz.nucleoid.spleef.game.map.shape.SpleefShape;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 public final class SpleefMap {
@@ -33,6 +36,13 @@ public final class SpleefMap {
     private int topLevel;
 
     private final Long2IntMap decayPositions = new Long2IntOpenHashMap();
+
+    private SpleefShape lavaShape;
+    private BlockStateProvider lavaProvider;
+    private int lavaMinY;
+
+    private int lavaHeight = -1;
+    private long lastLavaRise;
 
     private BlockPos spawn = BlockPos.ORIGIN;
 
@@ -52,6 +62,12 @@ public final class SpleefMap {
 
     public void setSpawn(BlockPos pos) {
         this.spawn = pos;
+    }
+
+    public void setLava(SpleefShape shape, BlockStateProvider lavaProvider, int lavaMinY) {
+        this.lavaShape = shape;
+        this.lavaProvider = lavaProvider;
+        this.lavaMinY = lavaMinY;
     }
 
     public void tickDecay(ServerWorld world) {
@@ -131,6 +147,26 @@ public final class SpleefMap {
         level.shape.forEachFill((x, z) -> {
             mutablePos.set(x, y, z);
             world.setBlockState(mutablePos, Blocks.AIR.getDefaultState());
+        });
+    }
+
+    public void tickLavaRise(ServerWorld world, long time, LavaRiseConfig config) {
+        if (this.lavaShape == null || time - this.lastLavaRise < config.getTicksPerLevel()) {
+            return;
+        }
+
+        this.lastLavaRise = time;
+
+        int lavaHeight = ++this.lavaHeight;
+
+        int y = lavaHeight + this.lavaMinY;
+
+        BlockPos.Mutable mutablePos = new BlockPos.Mutable();
+        Random random = world.random;
+
+        this.lavaShape.forEachFill((x, z) -> {
+            mutablePos.set(x, y, z);
+            world.setBlockState(mutablePos, this.lavaProvider.getBlockState(random, mutablePos));
         });
     }
 

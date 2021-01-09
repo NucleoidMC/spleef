@@ -2,9 +2,9 @@ package xyz.nucleoid.spleef.game.map;
 
 import net.minecraft.util.math.BlockPos;
 import xyz.nucleoid.plasmid.map.template.MapTemplate;
-import xyz.nucleoid.spleef.game.map.shape.SpleefShape;
 import xyz.nucleoid.spleef.game.map.shape.ShapeCanvas;
 import xyz.nucleoid.spleef.game.map.shape.ShapePlacer;
+import xyz.nucleoid.spleef.game.map.shape.SpleefShape;
 
 import java.util.Random;
 
@@ -63,5 +63,7 @@ public final class SpleefMapGenerator {
         }
 
         map.providedFloors.addAll(floor.getUsedStates());
+
+        map.setLava(shape, this.config.lavaProvider, baseHeight);
     }
 }
