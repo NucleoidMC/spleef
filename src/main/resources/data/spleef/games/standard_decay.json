@@ -1,6 +1,6 @@
 {
   "type": "spleef:spleef",
-  "name": "Spleef with Decay",
+  "translation": "game.spleef.decay",
   "map": {
     "shape": {
       "type": "spleef:circle",
@@ -14,5 +14,9 @@
     "min": 1,
     "max": 100,
     "threshold": 2
+  },
+  "custom": {
+    "gamegui:icon": "minecraft:diamond_shovel",
+    "gamegui:description": "game.spleef.standard.desc"
   }
 }
