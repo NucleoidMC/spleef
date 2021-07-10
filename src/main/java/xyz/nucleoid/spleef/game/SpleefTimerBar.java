@@ -5,8 +5,8 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
-import xyz.nucleoid.plasmid.widget.BossBarWidget;
-import xyz.nucleoid.plasmid.widget.GlobalWidgets;
+import xyz.nucleoid.plasmid.game.common.GlobalWidgets;
+import xyz.nucleoid.plasmid.game.common.widget.BossBarWidget;
 
 public final class SpleefTimerBar {
     private final BossBarWidget widget;
@@ -16,7 +16,7 @@ public final class SpleefTimerBar {
     }
 
     static SpleefTimerBar create(GlobalWidgets widgets) {
-        Text title = getBarTitle(new LiteralText("Dropping in..."));
+        var title = getBarTitle(new LiteralText("Dropping in..."));
         return new SpleefTimerBar(widgets.addBossBar(title, BossBar.Color.GREEN, BossBar.Style.NOTCHED_10));
     }
 
@@ -32,13 +32,13 @@ public final class SpleefTimerBar {
 
         long minutes = secondsUntilDrop / 60;
         long seconds = secondsUntilDrop % 60;
-        String time = String.format("%02d:%02d", minutes, seconds);
+        var time = String.format("%02d:%02d", minutes, seconds);
 
         return getBarTitle(new LiteralText("Dropping in: " + time + "..."));
     }
 
     private static Text getBarTitle(Text customText) {
-        Text gameName = new TranslatableText("game.spleef.spleef").formatted(Formatting.BOLD);
+        var gameName = new TranslatableText("game.spleef.spleef").formatted(Formatting.BOLD);
         return new LiteralText("").append(gameName).append(" - ").append(customText).formatted(Formatting.GREEN);
     }
 }

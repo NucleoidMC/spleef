@@ -6,48 +6,14 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 
-public class ProjectileConfig {
+public record ProjectileConfig(ItemStack stack, int restockInterval, int maximum, int radius, int innerRadius) {
     public static final Codec<ProjectileConfig> CODEC = RecordCodecBuilder.create(instance -> {
         return instance.group(
-                ItemStack.CODEC.optionalFieldOf("stack", new ItemStack(Items.SNOWBALL)).forGetter(ProjectileConfig::getStack),
-                Codec.INT.optionalFieldOf("restock_interval", 6 * 20).forGetter(ProjectileConfig::getRestockInterval),
-                Codec.INT.optionalFieldOf("maximum", 5).forGetter(ProjectileConfig::getMaximum),
-                Codec.INT.optionalFieldOf("radius", 1).forGetter(ProjectileConfig::getRadius),
-                Codec.INT.optionalFieldOf("inner_radius", 0).forGetter(ProjectileConfig::getInnerRadius)
+                ItemStack.CODEC.optionalFieldOf("stack", new ItemStack(Items.SNOWBALL)).forGetter(ProjectileConfig::stack),
+                Codec.INT.optionalFieldOf("restock_interval", 6 * 20).forGetter(ProjectileConfig::restockInterval),
+                Codec.INT.optionalFieldOf("maximum", 5).forGetter(ProjectileConfig::maximum),
+                Codec.INT.optionalFieldOf("radius", 1).forGetter(ProjectileConfig::radius),
+                Codec.INT.optionalFieldOf("inner_radius", 0).forGetter(ProjectileConfig::innerRadius)
         ).apply(instance, ProjectileConfig::new);
     });
-
-    private final ItemStack stack;
-    private final int restockInterval;
-    private final int maximum;
-    private final int radius;
-    private final int innerRadius;
-
-    public ProjectileConfig(ItemStack stack, int restockInterval, int maximum, int radius, int innerRadius) {
-        this.stack = stack;
-        this.restockInterval = restockInterval;
-        this.maximum = maximum;
-        this.radius = radius;
-        this.innerRadius = innerRadius;
-    }
-    
-    public ItemStack getStack() {
-        return this.stack;
-    }
-
-    public int getRestockInterval() {
-        return this.restockInterval;
-    }
-
-    public int getMaximum() {
-        return this.maximum;
-    }
-    
-    public int getRadius() {
-        return this.radius;
-    }
-    
-    public int getInnerRadius() {
-        return this.innerRadius;
-    }
 }

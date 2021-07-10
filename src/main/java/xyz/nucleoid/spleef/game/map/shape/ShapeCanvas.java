@@ -31,8 +31,8 @@ public final class ShapeCanvas {
         int width = this.maxX - this.minX + 1;
         int height = this.maxZ - this.minZ + 1;
 
-        byte[] shape = new byte[width * height];
-        for (Long2BooleanMap.Entry entry : Long2BooleanMaps.fastIterable(this.points)) {
+        var shape = new byte[width * height];
+        for (var entry : Long2BooleanMaps.fastIterable(this.points)) {
             long pos = entry.getLongKey();
             int x = ChunkPos.getPackedX(pos) - this.minX;
             int z = ChunkPos.getPackedZ(pos) - this.minZ;

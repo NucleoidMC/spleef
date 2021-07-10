@@ -36,7 +36,7 @@ public final class SpleefShape {
     }
 
     private void forEachOf(ForEach handler, byte of) {
-        byte[] shape = this.shape;
+        var shape = this.shape;
         for (int z = this.minZ; z <= this.maxZ; z++) {
             for (int x = this.minX; x <= this.maxX; x++) {
                 int index = this.index(x, z);

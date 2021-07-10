@@ -41,7 +41,7 @@ public final class ShapePlacer {
     }
 
     private void set(BlockPos pos) {
-        BlockState state = this.provider.getBlockState(this.random, pos);
+        var state = this.provider.getBlockState(this.random, pos);
         this.usedStates.add(state);
 
         this.template.setBlockState(pos, state);

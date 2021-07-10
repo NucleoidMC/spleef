@@ -16,30 +16,30 @@ public final class SpleefMapGenerator {
     }
 
     public SpleefMap build() {
-        MapTemplate template = MapTemplate.createEmpty();
+        var template = MapTemplate.createEmpty();
 
-        SpleefMap map = new SpleefMap(template);
+        var map = new SpleefMap(template);
 
-        ShapeCanvas canvas = new ShapeCanvas();
-        this.config.shape.renderTo(canvas);
+        var canvas = new ShapeCanvas();
+        this.config.shape().renderTo(canvas);
 
-        SpleefShape shape = canvas.render();
+        var shape = canvas.render();
         this.buildFromShape(template, map, shape);
 
-        int offsetX = this.config.shape.getSpawnOffsetX();
-        int offsetZ = this.config.shape.getSpawnOffsetZ();
-        map.setSpawn(new BlockPos(offsetX, this.config.levels * this.config.levelHeight + 3, offsetZ));
+        int offsetX = this.config.shape().getSpawnOffsetX();
+        int offsetZ = this.config.shape().getSpawnOffsetZ();
+        map.setSpawn(new BlockPos(offsetX, this.config.levels() * this.config.levelHeight() + 3, offsetZ));
 
         return map;
     }
 
     private void buildFromShape(MapTemplate template, SpleefMap map, SpleefShape shape) {
-        Random random = new Random();
+        var random = new Random();
 
-        ShapePlacer floor = new ShapePlacer(template, this.config.floorProvider, random);
-        ShapePlacer walls = new ShapePlacer(template, this.config.wallProvider, random);
-        ShapePlacer lava = new ShapePlacer(template, this.config.lavaProvider, random);
-        ShapePlacer ceiling = new ShapePlacer(template, this.config.ceilingProvider, random);
+        var floor = new ShapePlacer(template, this.config.floorProvider(), random);
+        var walls = new ShapePlacer(template, this.config.wallProvider(), random);
+        var lava = new ShapePlacer(template, this.config.lavaProvider(), random);
+        var ceiling = new ShapePlacer(template, this.config.ceilingProvider(), random);
 
         int baseHeight = 2;
 
@@ -48,15 +48,15 @@ public final class SpleefMapGenerator {
         lava.fill(shape, baseHeight, baseHeight);
 
         // walls
-        int ceilingY = (this.config.levels + 1) * this.config.levelHeight + baseHeight;
+        int ceilingY = (this.config.levels() + 1) * this.config.levelHeight() + baseHeight;
         walls.outline(shape, baseHeight, ceilingY);
 
         // ceiling
         ceiling.fill(shape, ceilingY, ceilingY);
 
         // levels
-        for (int level = 0; level < this.config.levels; level++) {
-            int y = (level + 1) * this.config.levelHeight + baseHeight;
+        for (int level = 0; level < this.config.levels(); level++) {
+            int y = (level + 1) * this.config.levelHeight() + baseHeight;
             floor.fill(shape, y, y);
 
             map.addLevel(shape, y);
@@ -64,6 +64,6 @@ public final class SpleefMapGenerator {
 
         map.providedFloors.addAll(floor.getUsedStates());
 
-        map.setLava(shape, this.config.lavaProvider, baseHeight);
+        map.setLava(shape, this.config.lavaProvider(), baseHeight);
     }
 }

@@ -6,22 +6,21 @@ import xyz.nucleoid.spleef.game.map.shape.ShapeCanvas;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class PatternShapeRenderer implements MapShapeRenderer {
     private static final Codec<boolean[][]> PATTERN_CODEC = Codec.STRING.listOf()
             .xmap(pattern -> {
                 return pattern.stream().map(row -> {
-                    boolean[] mask = new boolean[row.length()];
+                    var mask = new boolean[row.length()];
                     for (int index = 0; index < row.length(); index++) {
                         mask[index] = row.charAt(index) != ' ';
                     }
                     return mask;
                 }).toArray(boolean[][]::new);
             }, mask -> {
-                List<String> pattern = new ArrayList<>();
-                for (boolean[] row : mask) {
-                    StringBuilder rowPattern = new StringBuilder();
+                var pattern = new ArrayList<String>();
+                for (var row : mask) {
+                    var rowPattern = new StringBuilder();
                     for (boolean tile : row) {
                         rowPattern.append(tile ? 'x' : ' ');
                     }

@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMaps;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -23,7 +22,6 @@ import xyz.nucleoid.spleef.game.map.shape.SpleefShape;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 public final class SpleefMap {
@@ -71,12 +69,12 @@ public final class SpleefMap {
     }
 
     public void tickDecay(ServerWorld world) {
-        BlockPos.Mutable mutablePos = new BlockPos.Mutable();
+        var mutablePos = new BlockPos.Mutable();
 
         // Remove decayed blocks from previous ticks
-        ObjectIterator<Long2IntMap.Entry> iterator = Long2IntMaps.fastIterator(this.decayPositions);
+        var iterator = Long2IntMaps.fastIterator(this.decayPositions);
         while (iterator.hasNext()) {
-            Long2IntMap.Entry entry = iterator.next();
+            var entry = iterator.next();
             long pos = entry.getLongKey();
             int ticksLeft = entry.getIntValue();
 
@@ -93,7 +91,7 @@ public final class SpleefMap {
     public void tryBeginDecayAt(BlockPos pos, int timer) {
         int level = this.yToLevel.get(pos.getY());
         if (level != -1) {
-            SpleefShape levelShape = this.levels.get(level).shape;
+            var levelShape = this.levels.get(level).shape;
             if (levelShape.isFillAt(pos.getX(), pos.getZ())) {
                 this.decayPositions.putIfAbsent(pos.asLong(), timer);
             }
@@ -118,7 +116,7 @@ public final class SpleefMap {
 
     public int getMaxPlayerLevel(ServerWorld world) {
         int maxPlayerLevel = -1;
-        for (ServerPlayerEntity player : world.getPlayers()) {
+        for (var player : world.getPlayers()) {
             if (player.isSpectator()) continue;
 
             int playerLevel = this.getLevelFor(player);
@@ -132,7 +130,7 @@ public final class SpleefMap {
 
     private int getLevelFor(ServerPlayerEntity player) {
         for (int i = this.topLevel; i >= 0; i--) {
-            Level level = this.levels.get(i);
+            var level = this.levels.get(i);
             if (player.getY() >= level.y) {
                 return i;
             }
@@ -141,7 +139,7 @@ public final class SpleefMap {
     }
 
     private void deleteLevel(ServerWorld world, Level level) {
-        BlockPos.Mutable mutablePos = new BlockPos.Mutable();
+        var mutablePos = new BlockPos.Mutable();
         int y = level.y;
 
         level.shape.forEachFill((x, z) -> {
@@ -155,7 +153,7 @@ public final class SpleefMap {
             return;
         }
 
-        if (this.lavaShape == null || time - this.lastLavaRise < config.getTicksPerLevel()) {
+        if (this.lavaShape == null || time - this.lastLavaRise < config.ticksPerLevel()) {
             return;
         }
 
@@ -165,8 +163,8 @@ public final class SpleefMap {
 
         int y = lavaHeight + this.lavaMinY;
 
-        BlockPos.Mutable mutablePos = new BlockPos.Mutable();
-        Random random = world.random;
+        var mutablePos = new BlockPos.Mutable();
+        var random = world.random;
 
         this.lavaShape.forEachFill((x, z) -> {
             mutablePos.set(x, y, z);
