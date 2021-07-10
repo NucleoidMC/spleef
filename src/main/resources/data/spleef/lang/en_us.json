@@ -1,8 +1,8 @@
 {
-  "game.spleef.spleef": "Spleef",
+  "gameType.spleef.spleef": "Spleef",
   "game.spleef.standard": "Spleef",
-  "game.spleef.projectiles": "Spleef with Projectiles",
-  "game.spleef.decay": "Spleef with Decay",
+  "game.spleef.standard_projectiles": "Spleef with Projectiles",
+  "game.spleef.standard_decay": "Spleef with Decay",
 
   "game.spleef.standard.desc": "In spleef, you must break the blocks beneath players to make them fall!"
 }

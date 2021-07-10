@@ -17,8 +17,8 @@ public final class Spleef implements ModInitializer {
     public void onInitialize() {
         GameType.register(
                 new Identifier(Spleef.ID, "spleef"),
-                SpleefWaiting::open,
-                SpleefConfig.CODEC
+                SpleefConfig.CODEC,
+                SpleefWaiting::open
         );
 
         MapShapeRenderer.REGISTRY.register(new Identifier(Spleef.ID, "circle"), CircleShapeRenderer.CODEC);

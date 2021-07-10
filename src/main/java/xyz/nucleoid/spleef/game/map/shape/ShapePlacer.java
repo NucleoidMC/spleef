@@ -4,7 +4,7 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
-import xyz.nucleoid.plasmid.map.template.MapTemplate;
+import xyz.nucleoid.map_templates.MapTemplate;
 
 import java.util.Random;
 import java.util.Set;
@@ -41,7 +41,7 @@ public final class ShapePlacer {
     }
 
     private void set(BlockPos pos) {
-        BlockState state = this.provider.getBlockState(this.random, pos);
+        var state = this.provider.getBlockState(this.random, pos);
         this.usedStates.add(state);
 
         this.template.setBlockState(pos, state);

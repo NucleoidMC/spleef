@@ -4,42 +4,38 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import xyz.nucleoid.plasmid.game.config.PlayerConfig;
+import org.jetbrains.annotations.Nullable;
+import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
 import xyz.nucleoid.spleef.game.map.SpleefMapConfig;
 
 import java.util.Optional;
 
-public final class SpleefConfig {
+public final record SpleefConfig(
+        SpleefMapConfig map,
+        PlayerConfig players,
+        ItemStack tool,
+        @Nullable ProjectileConfig projectile,
+        @Nullable LavaRiseConfig lavaRise,
+        long levelBreakInterval,
+        int decay,
+        int timeOfDay,
+        boolean unstableTnt
+) {
     public static final Codec<SpleefConfig> CODEC = RecordCodecBuilder.create(instance -> {
         return instance.group(
-                SpleefMapConfig.CODEC.fieldOf("map").forGetter(config -> config.map),
-                PlayerConfig.CODEC.fieldOf("players").forGetter(config -> config.players),
-                ItemStack.CODEC.optionalFieldOf("tool", new ItemStack(Items.DIAMOND_SHOVEL)).forGetter(config -> config.tool),
-                ProjectileConfig.CODEC.optionalFieldOf("projectile").forGetter(config -> Optional.ofNullable(config.projectile)),
-                LavaRiseConfig.CODEC.optionalFieldOf("lava_rise").forGetter(config -> Optional.ofNullable(config.lavaRise)),
-                Codec.LONG.optionalFieldOf("level_break_interval", 20L * 60).forGetter(config -> config.levelBreakInterval),
-                Codec.INT.optionalFieldOf("decay", -1).forGetter(config -> config.decay),
-                Codec.INT.optionalFieldOf("time_of_day", 6000).forGetter(config -> config.timeOfDay),
-                Codec.BOOL.optionalFieldOf("unstable_tnt", false).forGetter(config -> config.unstableTnt)
+                SpleefMapConfig.CODEC.fieldOf("map").forGetter(SpleefConfig::map),
+                PlayerConfig.CODEC.fieldOf("players").forGetter(SpleefConfig::players),
+                ItemStack.CODEC.optionalFieldOf("tool", new ItemStack(Items.DIAMOND_SHOVEL)).forGetter(SpleefConfig::tool),
+                ProjectileConfig.CODEC.optionalFieldOf("projectile").forGetter(config -> Optional.ofNullable(config.projectile())),
+                LavaRiseConfig.CODEC.optionalFieldOf("lava_rise").forGetter(config -> Optional.ofNullable(config.lavaRise())),
+                Codec.LONG.optionalFieldOf("level_break_interval", 20L * 60).forGetter(SpleefConfig::levelBreakInterval),
+                Codec.INT.optionalFieldOf("decay", -1).forGetter(SpleefConfig::decay),
+                Codec.INT.optionalFieldOf("time_of_day", 6000).forGetter(SpleefConfig::timeOfDay),
+                Codec.BOOL.optionalFieldOf("unstable_tnt", false).forGetter(SpleefConfig::unstableTnt)
         ).apply(instance, SpleefConfig::new);
     });
 
-    public final SpleefMapConfig map;
-    public final PlayerConfig players;
-
-    public final ItemStack tool;
-
-    public final ProjectileConfig projectile;
-    public final LavaRiseConfig lavaRise;
-
-    public final long levelBreakInterval;
-    public final int decay;
-
-    public final int timeOfDay;
-
-    public final boolean unstableTnt;
-
-    public SpleefConfig(
+    private SpleefConfig(
             SpleefMapConfig map,
             PlayerConfig players,
             ItemStack tool,
@@ -50,14 +46,13 @@ public final class SpleefConfig {
             int timeOfDay,
             boolean unstableTnt
     ) {
-        this.map = map;
-        this.players = players;
-        this.tool = tool;
-        this.projectile = projectile.orElse(null);
-        this.lavaRise = lavaRise.orElse(null);
-        this.levelBreakInterval = levelBreakInterval;
-        this.decay = decay;
-        this.timeOfDay = timeOfDay;
-        this.unstableTnt = unstableTnt;
+        this(
+                map, players, tool,
+                projectile.orElse(null),
+                lavaRise.orElse(null),
+                levelBreakInterval, decay,
+                timeOfDay,
+                unstableTnt
+        );
     }
 }

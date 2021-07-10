@@ -1,6 +1,7 @@
 {
   "type": "spleef:spleef",
-  "translation": "game.spleef.projectiles",
+  "icon": "minecraft:diamond_shovel",
+  "description": "game.spleef.standard.desc",
   "map": {
     "shape": {
       "type": "spleef:circle",
@@ -14,9 +15,5 @@
     "min": 1,
     "max": 100,
     "threshold": 2
-  },
-  "custom": {
-    "gamegui:icon": "minecraft:diamond_shovel",
-    "gamegui:description": "game.spleef.standard.desc"
   }
 }

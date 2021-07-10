@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "Spleef",
   "description": "Spleef minigame implemented on Fabric",
-  "authors": ["gegy1000"],
+  "authors": ["Nucleoid Contributors"],
   "license": "LGPLv3",
   "environment": "*",
   "entrypoints": {
@@ -14,7 +14,8 @@
   "depends": {
     "fabricloader": ">=0.9.1",
     "fabric": "*",
-    "minecraft": "1.16.x",
-    "plasmid": "0.4.x"
+    "minecraft": "1.17.x",
+    "plasmid": "0.5.x",
+    "java": ">=16"
   }
 }
