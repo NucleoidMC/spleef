@@ -16,6 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.Nullable;
+import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.plasmid.game.GameCloseReason;
 import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.common.GlobalWidgets;
@@ -24,7 +25,6 @@ import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
 import xyz.nucleoid.plasmid.game.player.PlayerOffer;
 import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
 import xyz.nucleoid.plasmid.game.rule.GameRuleType;
-import xyz.nucleoid.plasmid.util.BlockBounds;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
@@ -57,7 +57,7 @@ public final class SpleefActive {
     }
 
     public static void open(GameSpace gameSpace, ServerWorld world, SpleefMap map, SpleefConfig config) {
-        gameSpace.setActivity(gameSpace.getSourceConfig(), activity -> {
+        gameSpace.setActivity(activity -> {
             var widgets = GlobalWidgets.addTo(activity);
 
             var active = new SpleefActive(gameSpace, world, map, config, widgets);
@@ -191,7 +191,7 @@ public final class SpleefActive {
             int radiusSquared = radius * radius;
             int innerRadiusSquared = innerRadius * innerRadius;
 
-            for (var pos : new BlockBounds(-radius, 0, -radius, radius, 0, radius)) {
+            for (var pos : BlockBounds.of(-radius, 0, -radius, radius, 0, radius)) {
                 int distance = pos.getX() * pos.getX() + pos.getZ() * pos.getZ();
                 if (distance >= radiusSquared) continue;
                 if (distance < innerRadiusSquared && innerRadius > 0) continue;

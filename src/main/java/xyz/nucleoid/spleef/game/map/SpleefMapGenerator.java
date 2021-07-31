@@ -1,7 +1,7 @@
 package xyz.nucleoid.spleef.game.map;
 
 import net.minecraft.util.math.BlockPos;
-import xyz.nucleoid.plasmid.map.template.MapTemplate;
+import xyz.nucleoid.map_templates.MapTemplate;
 import xyz.nucleoid.spleef.game.map.shape.ShapeCanvas;
 import xyz.nucleoid.spleef.game.map.shape.ShapePlacer;
 import xyz.nucleoid.spleef.game.map.shape.SpleefShape;
