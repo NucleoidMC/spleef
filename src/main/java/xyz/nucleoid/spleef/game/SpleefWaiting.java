@@ -46,7 +46,7 @@ public final class SpleefWaiting {
                 .setTimeOfDay(config.timeOfDay());
 
         return context.openWithWorld(worldConfig, (game, world) -> {
-            GameWaitingLobby.applyTo(game, config.players());
+            GameWaitingLobby.addTo(game, config.players());
 
             var waiting = new SpleefWaiting(game.getGameSpace(), world, map, config);
 
