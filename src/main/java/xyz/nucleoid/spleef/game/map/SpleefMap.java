@@ -176,6 +176,10 @@ public final class SpleefMap {
         return this.spawn;
     }
 
+    public int getTopLevel() {
+        return topLevel;
+    }
+
     public ChunkGenerator asGenerator(MinecraftServer server) {
         return new TemplateChunkGenerator(server, this.template);
     }
