@@ -13,6 +13,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.Nullable;
@@ -111,8 +112,14 @@ public final class SpleefActive {
 
             for (var player : this.gameSpace.getPlayers()) {
                 if (player.isSpectator()) continue;
-                var landingPos = player.getLandingPos();
-                this.map.tryBeginDecayAt(landingPos, this.config.decay());
+
+                var pos = player.getLandingPos().mutableCopy();
+                for (int corner = 0; corner < 4; corner++) {
+                    pos.setX(MathHelper.floor(player.getX() + (corner % 2 * 2 - 1) * 0.25));
+                    pos.setZ(MathHelper.floor(player.getZ() + (corner / 2 % 2 * 2 - 1) * 0.25));
+
+                    this.map.tryBeginDecayAt(pos, this.config.decay());
+                }
             }
         }
 
