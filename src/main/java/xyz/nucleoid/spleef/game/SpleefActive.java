@@ -127,6 +127,8 @@ public final class SpleefActive {
             }
 
             this.nextLevelDropTime = time + this.config.levelBreakInterval();
+        } else if(map.getTopLevel() <= -1 & lavaRise != null) {
+            timerBar.setBarLava();
         } else {
             long ticksToDrop = this.nextLevelDropTime - time;
             if (ticksToDrop % 20 == 0) {

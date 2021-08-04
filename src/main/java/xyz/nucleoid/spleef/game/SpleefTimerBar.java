@@ -27,6 +27,14 @@ public final class SpleefTimerBar {
         }
     }
 
+    public void setBarLava(){
+        var gameName = new TranslatableText("game.spleef.spleef").formatted(Formatting.BOLD);
+        var lavaMsg = new TranslatableText("game.spleef.lava.msg");
+        this.widget.setTitle(new LiteralText("").append(gameName).append(" - ").append(lavaMsg).formatted(Formatting.RED));
+        this.widget.setStyle(BossBar.Color.RED, BossBar.Style.NOTCHED_10);
+        this.widget.setProgress(1f);
+    }
+
     private Text getDroppingText(long ticksUntilDrop) {
         long secondsUntilDrop = ticksUntilDrop / 20;
 
