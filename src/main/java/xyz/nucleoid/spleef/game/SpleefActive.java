@@ -44,6 +44,7 @@ public final class SpleefActive {
     private long restockTime = -1;
 
     private final boolean ignoreWinState;
+    private boolean hasEnded = false;
     private long closeTime = -1;
 
     private SpleefActive(GameSpace gameSpace, ServerWorld world, SpleefMap map, SpleefConfig config, GlobalWidgets widgets) {
@@ -215,6 +216,8 @@ public final class SpleefActive {
     private void broadcastWin(WinResult result) {
         var winningPlayer = result.winningPlayer();
 
+        hasEnded = true;
+
         Text message;
         if (winningPlayer != null) {
             message = winningPlayer.getDisplayName().shallowCopy().append(" has won the game!").formatted(Formatting.GOLD);
@@ -228,7 +231,7 @@ public final class SpleefActive {
     }
 
     private ActionResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
-        if (!player.isSpectator() && source == DamageSource.LAVA && closeTime < 0) {
+        if (!player.isSpectator() && source == DamageSource.LAVA && !hasEnded) {
             this.eliminatePlayer(player);
         }
         return ActionResult.FAIL;
