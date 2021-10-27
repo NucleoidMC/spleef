@@ -23,6 +23,7 @@ public final class Spleef implements ModInitializer {
 
         MapShapeRenderer.REGISTRY.register(new Identifier(Spleef.ID, "circle"), CircleShapeRenderer.CODEC);
         MapShapeRenderer.REGISTRY.register(new Identifier(Spleef.ID, "square"), SquareShapeRenderer.CODEC);
+        MapShapeRenderer.REGISTRY.register(new Identifier(Spleef.ID, "sierpinski_carpet"), SierpinskiCarpetShapeRenderer.CODEC);
         MapShapeRenderer.REGISTRY.register(new Identifier(Spleef.ID, "pattern"), PatternShapeRenderer.CODEC);
     }
 }
