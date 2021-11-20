@@ -46,7 +46,7 @@ public final class SpleefTimerBar {
     }
 
     private static Text getBarTitle(Text customText) {
-        var gameName = new TranslatableText("game.spleef.spleef").formatted(Formatting.BOLD);
+        var gameName = new TranslatableText("gameType.spleef.spleef").formatted(Formatting.BOLD);
         return new LiteralText("").append(gameName).append(" - ").append(customText).formatted(Formatting.GREEN);
     }
 }
