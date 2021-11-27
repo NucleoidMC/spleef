@@ -38,6 +38,7 @@ public final class SpleefMap {
     private SpleefShape lavaShape;
     private BlockStateProvider lavaProvider;
     private int lavaMinY;
+    private int lavaMaxY;
 
     private int lavaHeight = -1;
     private long lastLavaRise;
@@ -159,7 +160,10 @@ public final class SpleefMap {
 
         this.lastLavaRise = time;
 
-        int lavaHeight = ++this.lavaHeight;
+        this.lavaMaxY = this.lavaMinY;
+        if (config.maximumHeight() > 2) {this.lavaMaxY = config.maximumHeight();}
+
+        if (lavaHeight < (this.lavaMaxY - this.lavaMinY)){int lavaHeight = ++this.lavaHeight;}
 
         int y = lavaHeight + this.lavaMinY;
 

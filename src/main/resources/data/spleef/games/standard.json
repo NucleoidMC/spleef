@@ -14,5 +14,9 @@
     "min": 1,
     "max": 100,
     "threshold": 2
+  },
+  "lava_rise": {
+    "ticks_per_level": 60,
+    "maximum_height": 26
   }
 }
