@@ -7,8 +7,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
@@ -220,9 +220,9 @@ public final class SpleefActive {
 
         Text message;
         if (winningPlayer != null) {
-            message = winningPlayer.getDisplayName().shallowCopy().append(" has won the game!").formatted(Formatting.GOLD);
+            message = new TranslatableText("text.spleef.win", winningPlayer.getDisplayName()).formatted(Formatting.GOLD);
         } else {
-            message = new LiteralText("The game ended, but nobody won!").formatted(Formatting.GOLD);
+            message = new TranslatableText("text.spleef.no_winners").formatted(Formatting.GOLD);
         }
 
         var players = this.gameSpace.getPlayers();
@@ -260,7 +260,7 @@ public final class SpleefActive {
     }
 
     private void eliminatePlayer(ServerPlayerEntity player) {
-        var message = player.getDisplayName().shallowCopy().append(" has been eliminated!")
+        var message = new TranslatableText("text.spleef.eliminated", player.getDisplayName())
                 .formatted(Formatting.RED);
 
         var players = this.gameSpace.getPlayers();

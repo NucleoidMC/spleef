@@ -5,5 +5,12 @@
   "game.spleef.standard_decay": "Spleef with Decay",
 
   "game.spleef.standard.desc": "In spleef, you must break the blocks beneath players to make them fall!",
-  "game.spleef.lava.msg": "Lava is now rising!"
+  "game.spleef.lava.msg": "Lava is now rising!",
+
+  "text.spleef.bar.dropping": "Dropping in: %s...",
+  "text.spleef.bar.dropping.none": "Dropping in...",
+  "text.spleef.eliminated": "%s has been eliminated!",
+  "text.spleef.no_spawn": "No spawn defined on map!",
+  "text.spleef.no_winners": "The game ended, but nobody won!",
+  "text.spleef.win": "%s has won the game!"
 }

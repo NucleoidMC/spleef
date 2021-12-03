@@ -16,7 +16,7 @@ public final class SpleefTimerBar {
     }
 
     static SpleefTimerBar create(GlobalWidgets widgets) {
-        var title = getBarTitle(new LiteralText("Dropping in..."));
+        var title = getBarTitle(new TranslatableText("text.spleef.bar.dropping.none"));
         return new SpleefTimerBar(widgets.addBossBar(title, BossBar.Color.GREEN, BossBar.Style.NOTCHED_10));
     }
 
@@ -42,7 +42,7 @@ public final class SpleefTimerBar {
         long seconds = secondsUntilDrop % 60;
         var time = String.format("%02d:%02d", minutes, seconds);
 
-        return getBarTitle(new LiteralText("Dropping in: " + time + "..."));
+        return getBarTitle(new TranslatableText("text.spleef.bar.dropping", time));
     }
 
     private static Text getBarTitle(Text customText) {
