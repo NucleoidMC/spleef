@@ -3,7 +3,7 @@ package xyz.nucleoid.spleef.game;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
@@ -74,7 +74,7 @@ public final class SpleefWaiting {
     private PlayerOfferResult offerPlayer(PlayerOffer offer) {
         var spawn = this.map.getSpawn();
         if (spawn == null) {
-            return offer.reject(new LiteralText("No spawn defined on map!"));
+            return offer.reject(new TranslatableText("text.spleef.no_spawn"));
         }
 
         return offer.accept(this.world, Vec3d.ofCenter(spawn))
