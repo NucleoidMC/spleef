@@ -15,8 +15,8 @@ repositories {
 	maven { url = "https://maven.gegy.dev/" }
 }
 
-minecraft {
-	accessWidener = file("src/main/resources/spleef.accesswidener")
+loom {
+	accessWidenerPath = file("src/main/resources/spleef.accesswidener")
 }
 
 dependencies {
@@ -28,7 +28,7 @@ dependencies {
 
 	modImplementation 'xyz.nucleoid:plasmid:0.5.40+1.18'
 
-	modRuntime ("supercoder79:databreaker:0.2.8") {
+	modRuntimeOnly ("supercoder79:databreaker:0.2.8") {
 		exclude module : "fabric-loader"
 	}
 }
@@ -43,7 +43,7 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
-	it.options.release = 16
+	it.options.release = 17
 }
 
 java {
