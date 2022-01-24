@@ -16,7 +16,7 @@ public final class SpleefTimerBar {
     }
 
     static SpleefTimerBar create(GlobalWidgets widgets) {
-        var title = getBarTitle(new TranslatableText("text.spleef.bar.dropping.none"));
+        var title = getBarTitle(new TranslatableText("text.spleef.bar.dropping.none"), "GREEN");
         return new SpleefTimerBar(widgets.addBossBar(title, BossBar.Color.GREEN, BossBar.Style.NOTCHED_10));
     }
 
@@ -28,9 +28,7 @@ public final class SpleefTimerBar {
     }
 
     public void setBarLava(){
-        var gameName = new TranslatableText("gameType.spleef.spleef").formatted(Formatting.BOLD);
-        var lavaMsg = new TranslatableText("game.spleef.lava.msg");
-        this.widget.setTitle(new LiteralText("").append(gameName).append(" - ").append(lavaMsg).formatted(Formatting.RED));
+        this.widget.setTitle(getBarTitle(new TranslatableText("game.spleef.lava.msg"), "RED"));
         this.widget.setStyle(BossBar.Color.RED, BossBar.Style.NOTCHED_10);
         this.widget.setProgress(1f);
     }
@@ -42,11 +40,11 @@ public final class SpleefTimerBar {
         long seconds = secondsUntilDrop % 60;
         var time = String.format("%02d:%02d", minutes, seconds);
 
-        return getBarTitle(new TranslatableText("text.spleef.bar.dropping", time));
+        return getBarTitle(new TranslatableText("text.spleef.bar.dropping", time), "GREEN");
     }
 
-    private static Text getBarTitle(Text customText) {
+    private static Text getBarTitle(Text customText, String color ) {
         var gameName = new TranslatableText("gameType.spleef.spleef").formatted(Formatting.BOLD);
-        return new LiteralText("").append(gameName).append(" - ").append(customText).formatted(Formatting.GREEN);
+        return new LiteralText("").append(gameName).append(" - ").append(customText).formatted(Formatting.valueOf(color));
     }
 }
