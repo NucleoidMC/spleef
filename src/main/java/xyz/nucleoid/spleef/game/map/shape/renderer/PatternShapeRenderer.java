@@ -49,9 +49,14 @@ public class PatternShapeRenderer implements MapShapeRenderer {
         this.height = tiles.length;
     }
 
-    private boolean isOutline(int row, int column) {
-        if (column >= this.width - 1) return true;
-        return this.tiles[row][column];
+    private boolean isOutline(int rowIdx, int columnIdx) {
+        if (rowIdx < 0 || columnIdx < 0) return false;
+
+        var rows = this.tiles;
+        if (rowIdx >= rows.length) return false;
+
+        var row = rows[rowIdx];
+        return columnIdx < row.length && row[columnIdx];
     }
 
     @Override
@@ -76,7 +81,8 @@ public class PatternShapeRenderer implements MapShapeRenderer {
 
     @Override
     public int getSpawnOffsetX() {
-        return this.tiles[this.height / 2].length * this.tileSize / 2;
+        var middleRow = this.tiles[this.height / 2];
+        return middleRow.length * this.tileSize / 2;
     }
 
     @Override
