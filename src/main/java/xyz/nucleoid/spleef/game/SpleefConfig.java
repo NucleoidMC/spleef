@@ -2,8 +2,6 @@ package xyz.nucleoid.spleef.game;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
 import xyz.nucleoid.spleef.game.map.SpleefMapConfig;
@@ -13,7 +11,7 @@ import java.util.Optional;
 public final record SpleefConfig(
         SpleefMapConfig map,
         PlayerConfig players,
-        ItemStack tool,
+        ToolConfig tool,
         @Nullable ProjectileConfig projectile,
         @Nullable LavaRiseConfig lavaRise,
         long levelBreakInterval,
@@ -25,7 +23,7 @@ public final record SpleefConfig(
         return instance.group(
                 SpleefMapConfig.CODEC.fieldOf("map").forGetter(SpleefConfig::map),
                 PlayerConfig.CODEC.fieldOf("players").forGetter(SpleefConfig::players),
-                ItemStack.CODEC.optionalFieldOf("tool", new ItemStack(Items.DIAMOND_SHOVEL)).forGetter(SpleefConfig::tool),
+                ToolConfig.CODEC.optionalFieldOf("tool", ToolConfig.DEFAULT).forGetter(SpleefConfig::tool),
                 ProjectileConfig.CODEC.optionalFieldOf("projectile").forGetter(config -> Optional.ofNullable(config.projectile())),
                 LavaRiseConfig.CODEC.optionalFieldOf("lava_rise").forGetter(config -> Optional.ofNullable(config.lavaRise())),
                 Codec.LONG.optionalFieldOf("level_break_interval", 20L * 60).forGetter(SpleefConfig::levelBreakInterval),
@@ -38,7 +36,7 @@ public final record SpleefConfig(
     private SpleefConfig(
             SpleefMapConfig map,
             PlayerConfig players,
-            ItemStack tool,
+            ToolConfig tool,
             Optional<ProjectileConfig> projectile,
             Optional<LavaRiseConfig> lavaRise,
             long levelBreakInterval,
