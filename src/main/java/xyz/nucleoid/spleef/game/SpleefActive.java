@@ -1,8 +1,8 @@
 package xyz.nucleoid.spleef.game;
 
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.projectile.ProjectileEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -16,6 +16,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import java.util.Collections;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.plasmid.game.GameCloseReason;
@@ -26,7 +28,6 @@ import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
 import xyz.nucleoid.plasmid.game.player.PlayerOffer;
 import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
 import xyz.nucleoid.plasmid.game.rule.GameRuleType;
-import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
@@ -95,8 +96,13 @@ public final class SpleefActive {
     }
 
     private void onEnable() {
+        var players = this.gameSpace.getPlayers().stream().collect(Collectors.toList());
+        Collections.shuffle(players);
+
+        int index = 0;
         for (var player : this.gameSpace.getPlayers()) {
-            this.spawnParticipant(player);
+            this.spawnParticipant(player, index);
+            index++;
         }
     }
 
@@ -244,19 +250,14 @@ public final class SpleefActive {
         return ActionResult.FAIL;
     }
 
-    private void spawnParticipant(ServerPlayerEntity player) {
+    private void spawnParticipant(ServerPlayerEntity player, int index) {
         player.changeGameMode(GameMode.ADVENTURE);
         player.getInventory().clear();
 
-        var shovelBuilder = ItemStackBuilder.of(this.config.tool())
-                .setUnbreakable()
-                .addEnchantment(Enchantments.EFFICIENCY, 2);
-
-        for (var state : this.map.providedFloors) {
-            shovelBuilder.addCanDestroy(state.getBlock());
+        ItemStack stack = this.config.tool().createStack(index, this.map);
+        if (!stack.isEmpty()) {
+            player.getInventory().insertStack(stack);
         }
-
-        player.getInventory().insertStack(shovelBuilder.build());
     }
 
     private void eliminatePlayer(ServerPlayerEntity player) {
