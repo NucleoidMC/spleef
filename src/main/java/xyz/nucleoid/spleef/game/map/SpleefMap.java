@@ -31,6 +31,7 @@ public final class SpleefMap {
     private final List<Level> levels = new ArrayList<>();
     private final Int2IntMap yToLevel = new Int2IntOpenHashMap();
 
+    private final int ceilingY;
     private int topLevel;
 
     private final Long2IntMap decayPositions = new Long2IntOpenHashMap();
@@ -44,9 +45,11 @@ public final class SpleefMap {
 
     private BlockPos spawn = BlockPos.ORIGIN;
 
-    public SpleefMap(MapTemplate template) {
+    public SpleefMap(MapTemplate template, int ceilingY) {
         this.template = template;
         this.yToLevel.defaultReturnValue(-1);
+
+        this.ceilingY = ceilingY;
     }
 
     public void addLevel(SpleefShape shape, int y) {
@@ -161,7 +164,7 @@ public final class SpleefMap {
 
         int lavaHeight = ++this.lavaHeight;
 
-        if (lavaHeight >= config.maximumHeight()) {
+        if (lavaHeight >= config.maximumHeight().orElse(ceilingY - 2)) {
             return;
         }
 

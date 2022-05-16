@@ -18,13 +18,16 @@ public final class SpleefMapGenerator {
     public SpleefMap build() {
         var template = MapTemplate.createEmpty();
 
-        var map = new SpleefMap(template);
+        int baseHeight = 2;
+        int ceilingY = (this.config.levels() + 1) * this.config.levelHeight() + baseHeight;
+
+        var map = new SpleefMap(template, ceilingY);
 
         var canvas = new ShapeCanvas();
         this.config.shape().renderTo(canvas);
 
         var shape = canvas.render();
-        this.buildFromShape(template, map, shape);
+        this.buildFromShape(template, map, shape, baseHeight, ceilingY);
 
         int offsetX = this.config.shape().getSpawnOffsetX();
         int offsetZ = this.config.shape().getSpawnOffsetZ();
@@ -33,7 +36,7 @@ public final class SpleefMapGenerator {
         return map;
     }
 
-    private void buildFromShape(MapTemplate template, SpleefMap map, SpleefShape shape) {
+    private void buildFromShape(MapTemplate template, SpleefMap map, SpleefShape shape, int baseHeight, int ceilingY) {
         var random = new Random();
 
         var floor = new ShapePlacer(template, this.config.floorProvider(), random);
@@ -41,14 +44,11 @@ public final class SpleefMapGenerator {
         var lava = new ShapePlacer(template, this.config.lavaProvider(), random);
         var ceiling = new ShapePlacer(template, this.config.ceilingProvider(), random);
 
-        int baseHeight = 2;
-
         // base
         walls.fill(shape, 0, baseHeight - 1);
         lava.fill(shape, baseHeight, baseHeight);
 
         // walls
-        int ceilingY = (this.config.levels() + 1) * this.config.levelHeight() + baseHeight;
         walls.outline(shape, baseHeight, ceilingY);
 
         // ceiling
