@@ -161,6 +161,10 @@ public final class SpleefMap {
 
         int lavaHeight = ++this.lavaHeight;
 
+        if (lavaHeight >= config.maximumHeight()) {
+            return;
+        }
+
         int y = lavaHeight + this.lavaMinY;
 
         var mutablePos = new BlockPos.Mutable();
