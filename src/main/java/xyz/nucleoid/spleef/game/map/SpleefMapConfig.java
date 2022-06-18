@@ -12,7 +12,8 @@ public record SpleefMapConfig(
         BlockStateProvider floorProvider,
         BlockStateProvider ceilingProvider,
         BlockStateProvider lavaProvider,
-        MapShapeRenderer shape
+        MapShapeRenderer shape,
+        OptionalPos spawn
 ) {
     public static final Codec<SpleefMapConfig> CODEC = RecordCodecBuilder.create(instance -> {
         return instance.group(
@@ -22,7 +23,8 @@ public record SpleefMapConfig(
                 BlockStateProvider.TYPE_CODEC.optionalFieldOf("floor_provider", BlockStateProvider.of(Blocks.SNOW_BLOCK)).forGetter(SpleefMapConfig::floorProvider),
                 BlockStateProvider.TYPE_CODEC.optionalFieldOf("ceiling_provider", BlockStateProvider.of(Blocks.BARRIER)).forGetter(SpleefMapConfig::ceilingProvider),
                 BlockStateProvider.TYPE_CODEC.optionalFieldOf("lava_provider", BlockStateProvider.of(Blocks.LAVA)).forGetter(SpleefMapConfig::lavaProvider),
-                MapShapeRenderer.REGISTRY_CODEC.fieldOf("shape").forGetter(config -> config.shape)
+                MapShapeRenderer.REGISTRY_CODEC.fieldOf("shape").forGetter(config -> config.shape),
+                OptionalPos.CODEC.optionalFieldOf("spawn", OptionalPos.EMPTY).forGetter(SpleefMapConfig::spawn)
         ).apply(instance, SpleefMapConfig::new);
     });
 }
