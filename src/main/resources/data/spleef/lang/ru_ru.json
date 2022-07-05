@@ -1,0 +1,16 @@
+{
+  "gameType.spleef.spleef": "Сплиф",
+  "game.spleef.standard": "Сплиф",
+  "game.spleef.standard_projectiles": "Сплиф со снарядами",
+  "game.spleef.standard_decay": "Сплиф с распадом",
+
+  "game.spleef.standard.desc": "Разрушайте блоки под игроками, чтобы они упали!",
+  "game.spleef.lava.msg": "Лава начала подниматься!",
+
+  "text.spleef.bar.dropping": "Падение: %s...",
+  "text.spleef.bar.dropping.none": "Падение...",
+  "text.spleef.eliminated": "%s выбыл из игры!",
+  "text.spleef.no_spawn": "На карте нет заданной точки появления!",
+  "text.spleef.no_winners": "Игры окончена, никто не победил!",
+  "text.spleef.win": "%s победил!"
+}
