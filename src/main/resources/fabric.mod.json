@@ -10,11 +10,10 @@
   "entrypoints": {
     "main": ["xyz.nucleoid.spleef.Spleef"]
   },
-  "accessWidener": "spleef.accesswidener",
   "depends": {
     "fabricloader": ">=0.12.12",
     "fabric": "*",
-    "minecraft": "1.18.x",
+    "minecraft": "1.19.x",
     "plasmid": "0.5.x",
     "java": ">=17"
   }

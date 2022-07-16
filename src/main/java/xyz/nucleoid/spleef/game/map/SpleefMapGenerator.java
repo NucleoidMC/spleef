@@ -1,12 +1,11 @@
 package xyz.nucleoid.spleef.game.map;
 
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
 import xyz.nucleoid.map_templates.MapTemplate;
 import xyz.nucleoid.spleef.game.map.shape.ShapeCanvas;
 import xyz.nucleoid.spleef.game.map.shape.ShapePlacer;
 import xyz.nucleoid.spleef.game.map.shape.SpleefShape;
-
-import java.util.Random;
 
 public final class SpleefMapGenerator {
     private final SpleefMapConfig config;
@@ -15,7 +14,7 @@ public final class SpleefMapGenerator {
         this.config = config;
     }
 
-    public SpleefMap build() {
+    public SpleefMap build(Random random) {
         var template = MapTemplate.createEmpty();
 
         int baseHeight = 2;
@@ -27,7 +26,7 @@ public final class SpleefMapGenerator {
         this.config.shape().renderTo(canvas);
 
         var shape = canvas.render();
-        this.buildFromShape(template, map, shape, baseHeight, ceilingY);
+        this.buildFromShape(template, map, shape, random, baseHeight, ceilingY);
 
         int offsetX = this.config.shape().getSpawnOffsetX();
         int offsetZ = this.config.shape().getSpawnOffsetZ();
@@ -36,9 +35,7 @@ public final class SpleefMapGenerator {
         return map;
     }
 
-    private void buildFromShape(MapTemplate template, SpleefMap map, SpleefShape shape, int baseHeight, int ceilingY) {
-        var random = new Random();
-
+    private void buildFromShape(MapTemplate template, SpleefMap map, SpleefShape shape, Random random, int baseHeight, int ceilingY) {
         var floor = new ShapePlacer(template, this.config.floorProvider(), random);
         var walls = new ShapePlacer(template, this.config.wallProvider(), random);
         var lava = new ShapePlacer(template, this.config.lavaProvider(), random);

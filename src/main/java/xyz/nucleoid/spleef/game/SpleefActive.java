@@ -8,7 +8,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
@@ -120,7 +119,7 @@ public final class SpleefActive {
             for (var player : this.gameSpace.getPlayers()) {
                 if (player.isSpectator()) continue;
 
-                var pos = player.getLandingPos().mutableCopy();
+                var pos = player.getSteppingPos().mutableCopy();
                 for (int corner = 0; corner < 4; corner++) {
                     pos.setX(MathHelper.floor(player.getX() + (corner % 2 * 2 - 1) * 0.25));
                     pos.setZ(MathHelper.floor(player.getZ() + (corner / 2 % 2 * 2 - 1) * 0.25));
@@ -226,9 +225,9 @@ public final class SpleefActive {
 
         Text message;
         if (winningPlayer != null) {
-            message = new TranslatableText("text.spleef.win", winningPlayer.getDisplayName()).formatted(Formatting.GOLD);
+            message = Text.translatable("text.spleef.win", winningPlayer.getDisplayName()).formatted(Formatting.GOLD);
         } else {
-            message = new TranslatableText("text.spleef.no_winners").formatted(Formatting.GOLD);
+            message = Text.translatable("text.spleef.no_winners").formatted(Formatting.GOLD);
         }
 
         var players = this.gameSpace.getPlayers();
@@ -261,7 +260,7 @@ public final class SpleefActive {
     }
 
     private void eliminatePlayer(ServerPlayerEntity player) {
-        var message = new TranslatableText("text.spleef.eliminated", player.getDisplayName())
+        var message = Text.translatable("text.spleef.eliminated", player.getDisplayName())
                 .formatted(Formatting.RED);
 
         var players = this.gameSpace.getPlayers();
