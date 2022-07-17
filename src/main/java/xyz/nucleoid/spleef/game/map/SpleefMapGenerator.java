@@ -1,12 +1,11 @@
 package xyz.nucleoid.spleef.game.map;
 
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
 import xyz.nucleoid.map_templates.MapTemplate;
 import xyz.nucleoid.spleef.game.map.shape.ShapeCanvas;
 import xyz.nucleoid.spleef.game.map.shape.ShapePlacer;
 import xyz.nucleoid.spleef.game.map.shape.SpleefShape;
-
-import java.util.Random;
 
 public final class SpleefMapGenerator {
     private final SpleefMapConfig config;
@@ -37,7 +36,7 @@ public final class SpleefMapGenerator {
     }
 
     private void buildFromShape(MapTemplate template, SpleefMap map, SpleefShape shape, int baseHeight, int ceilingY) {
-        var random = new Random();
+        var random = Random.createLocal();
 
         var floor = new ShapePlacer(template, this.config.floorProvider(), random);
         var walls = new ShapePlacer(template, this.config.wallProvider(), random);

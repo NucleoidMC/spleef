@@ -8,7 +8,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
@@ -16,8 +15,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
-import java.util.Collections;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.plasmid.game.GameCloseReason;
@@ -32,6 +29,9 @@ import xyz.nucleoid.spleef.game.map.SpleefMap;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 import xyz.nucleoid.stimuli.event.projectile.ProjectileHitEvent;
+
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 public final class SpleefActive {
     private final GameSpace gameSpace;
@@ -226,9 +226,9 @@ public final class SpleefActive {
 
         Text message;
         if (winningPlayer != null) {
-            message = new TranslatableText("text.spleef.win", winningPlayer.getDisplayName()).formatted(Formatting.GOLD);
+            message = Text.translatable("text.spleef.win", winningPlayer.getDisplayName()).formatted(Formatting.GOLD);
         } else {
-            message = new TranslatableText("text.spleef.no_winners").formatted(Formatting.GOLD);
+            message = Text.translatable("text.spleef.no_winners").formatted(Formatting.GOLD);
         }
 
         var players = this.gameSpace.getPlayers();
@@ -261,7 +261,7 @@ public final class SpleefActive {
     }
 
     private void eliminatePlayer(ServerPlayerEntity player) {
-        var message = new TranslatableText("text.spleef.eliminated", player.getDisplayName())
+        var message = Text.translatable("text.spleef.eliminated", player.getDisplayName())
                 .formatted(Formatting.RED);
 
         var players = this.gameSpace.getPlayers();

@@ -3,10 +3,10 @@ package xyz.nucleoid.spleef.game.map.shape;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import xyz.nucleoid.map_templates.MapTemplate;
 
-import java.util.Random;
 import java.util.Set;
 
 public final class ShapePlacer {
