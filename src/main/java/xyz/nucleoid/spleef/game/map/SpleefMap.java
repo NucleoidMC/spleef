@@ -1,20 +1,18 @@
 package xyz.nucleoid.spleef.game.map;
 
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMaps;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import org.jetbrains.annotations.Nullable;
-import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.MapTemplate;
 import xyz.nucleoid.plasmid.game.world.generator.TemplateChunkGenerator;
 import xyz.nucleoid.spleef.game.LavaRiseConfig;
@@ -27,8 +25,8 @@ public final class SpleefMap {
     private final MapTemplate template;
     public final Set<BlockState> providedFloors = new ReferenceOpenHashSet<>();
 
-    private final List<Level> levels = new ArrayList<>();
-    private final Int2IntMap yToLevel = new Int2IntOpenHashMap();
+    private final List<SpleefLevel> levels = new ArrayList<>();
+    private final Int2ObjectMap<SpleefLevel> yToLevel = new Int2ObjectOpenHashMap<>();
 
     private final int ceilingY;
     private int topLevel;
@@ -46,17 +44,14 @@ public final class SpleefMap {
 
     public SpleefMap(MapTemplate template, int ceilingY) {
         this.template = template;
-        this.yToLevel.defaultReturnValue(-1);
 
         this.ceilingY = ceilingY;
     }
 
-    public void addLevel(SpleefShape shape, int y) {
-        this.levels.add(new Level(shape, y));
-
-        int index = this.levels.size() - 1;
-
-        this.yToLevel.put(y, index);
+    public void addLevel(SpleefLevel level) {
+        int index = this.levels.size();
+        this.levels.add(level);
+        this.yToLevel.put(level.y(), level);
         this.topLevel = index;
     }
 
@@ -90,12 +85,9 @@ public final class SpleefMap {
     }
 
     public void tryBeginDecayAt(BlockPos pos, int timer) {
-        int level = this.yToLevel.get(pos.getY());
-        if (level != -1) {
-            var levelShape = this.levels.get(level).shape;
-            if (levelShape.isFillAt(pos.getX(), pos.getZ())) {
-                this.decayPositions.putIfAbsent(pos.asLong(), timer);
-            }
+        var level = this.yToLevel.get(pos.getY());
+        if (level != null && level.contains(pos)) {
+            this.decayPositions.putIfAbsent(pos.asLong(), timer);
         }
     }
 
@@ -108,7 +100,7 @@ public final class SpleefMap {
         int nextLevel = Math.min(this.topLevel - 1, maxPlayerLevel);
 
         for (int i = this.topLevel; i > nextLevel; i--) {
-            Level level = this.levels.get(i);
+            SpleefLevel level = this.levels.get(i);
             this.deleteLevel(world, level);
         }
 
@@ -132,21 +124,15 @@ public final class SpleefMap {
     private int getLevelBelow(int y) {
         for (int i = this.topLevel; i >= 0; i--) {
             var level = this.levels.get(i);
-            if (y > level.y) {
+            if (y > level.y()) {
                 return i;
             }
         }
         return 0;
     }
 
-    private void deleteLevel(ServerWorld world, Level level) {
-        var mutablePos = new BlockPos.Mutable();
-        int y = level.y;
-
-        level.shape.forEachFill((x, z) -> {
-            mutablePos.set(x, y, z);
-            world.setBlockState(mutablePos, Blocks.AIR.getDefaultState());
-        });
+    private void deleteLevel(ServerWorld world, SpleefLevel level) {
+        level.forEach(pos -> world.removeBlock(pos, false));
     }
 
     public void tickLavaRise(ServerWorld world, long time, LavaRiseConfig config) {
@@ -190,17 +176,5 @@ public final class SpleefMap {
 
     public ChunkGenerator asGenerator(MinecraftServer server) {
         return new TemplateChunkGenerator(server, this.template);
-    }
-
-    static class Level {
-        final SpleefShape shape;
-        final int y;
-        final BlockBounds bounds;
-
-        Level(SpleefShape shape, int y) {
-            this.shape = shape;
-            this.y = y;
-            this.bounds = shape.asBounds(y, y);
-        }
     }
 }

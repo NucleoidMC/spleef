@@ -1,6 +1,6 @@
 package xyz.nucleoid.spleef.game.map.shape;
 
-import xyz.nucleoid.map_templates.BlockBounds;
+import xyz.nucleoid.spleef.game.map.SpleefLevel;
 
 public final class SpleefShape {
     static final byte EMPTY = 0;
@@ -21,10 +21,6 @@ public final class SpleefShape {
 
         this.width = this.maxX - this.minX + 1;
         this.shape = shape;
-    }
-
-    public BlockBounds asBounds(int minY, int maxY) {
-        return BlockBounds.of(this.minX, minY, this.minZ, this.maxX, maxY, this.maxZ);
     }
 
     public void forEachFill(ForEach handler) {
@@ -69,6 +65,10 @@ public final class SpleefShape {
             return -1;
         }
         return (x - this.minX) + (z - this.minZ) * this.width;
+    }
+
+    public SpleefLevel toLevel(int y) {
+        return new SpleefLevel(this, y);
     }
 
     public interface ForEach {

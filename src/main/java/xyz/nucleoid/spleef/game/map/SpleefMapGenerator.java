@@ -58,7 +58,7 @@ public final class SpleefMapGenerator {
             int y = (level + 1) * this.config.levelHeight() + baseHeight;
             floor.fill(shape, y, y);
 
-            map.addLevel(shape, y);
+            map.addLevel(shape.toLevel(y));
         }
 
         map.providedFloors.addAll(floor.getUsedStates());
