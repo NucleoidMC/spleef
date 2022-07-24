@@ -9,16 +9,15 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
+import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.MapTemplate;
 import xyz.nucleoid.plasmid.game.world.generator.TemplateChunkGenerator;
 import xyz.nucleoid.spleef.game.LavaRiseConfig;
-import xyz.nucleoid.spleef.game.map.shape.SpleefShape;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +35,7 @@ public final class SpleefMap {
 
     private final Long2IntMap decayPositions = new Long2IntOpenHashMap();
 
-    private SpleefShape lavaShape;
+    @Nullable
     private BlockStateProvider lavaProvider;
     private int lavaMinY;
 
@@ -65,8 +64,7 @@ public final class SpleefMap {
         this.spawn = pos;
     }
 
-    public void setLava(SpleefShape shape, BlockStateProvider lavaProvider, int lavaMinY) {
-        this.lavaShape = shape;
+    public void setLava(BlockStateProvider lavaProvider, int lavaMinY) {
         this.lavaProvider = lavaProvider;
         this.lavaMinY = lavaMinY;
     }
@@ -118,11 +116,11 @@ public final class SpleefMap {
     }
 
     public int getMaxPlayerLevel(ServerWorld world) {
-        int maxPlayerLevel = -1;
+        int maxPlayerLevel = 0;
         for (var player : world.getPlayers()) {
             if (player.isSpectator()) continue;
 
-            int playerLevel = this.getLevelFor(player);
+            int playerLevel = this.getLevelBelow(player.getBlockY());
             if (playerLevel > maxPlayerLevel) {
                 maxPlayerLevel = playerLevel;
             }
@@ -131,14 +129,14 @@ public final class SpleefMap {
         return maxPlayerLevel;
     }
 
-    private int getLevelFor(ServerPlayerEntity player) {
+    private int getLevelBelow(int y) {
         for (int i = this.topLevel; i >= 0; i--) {
             var level = this.levels.get(i);
-            if (player.getY() >= level.y) {
+            if (y > level.y) {
                 return i;
             }
         }
-        return -1;
+        return 0;
     }
 
     private void deleteLevel(ServerWorld world, Level level) {
@@ -156,7 +154,7 @@ public final class SpleefMap {
             return;
         }
 
-        if (this.lavaShape == null || time - this.lastLavaRise < config.ticksPerLevel()) {
+        if (this.lavaProvider == null || time - this.lastLavaRise < config.ticksPerLevel()) {
             return;
         }
 
@@ -173,8 +171,11 @@ public final class SpleefMap {
         var mutablePos = new BlockPos.Mutable();
         var random = world.random;
 
-        this.lavaShape.forEachFill((x, z) -> {
-            mutablePos.set(x, y, z);
+        int levelIndex = this.getLevelBelow(y);
+        var level = this.levels.get(levelIndex);
+
+        level.forEach(pos -> {
+            mutablePos.set(pos.getX(), y, pos.getZ());
             world.setBlockState(mutablePos, this.lavaProvider.getBlockState(random, mutablePos));
         });
     }

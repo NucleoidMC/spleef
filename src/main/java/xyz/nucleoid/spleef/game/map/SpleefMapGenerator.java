@@ -63,6 +63,6 @@ public final class SpleefMapGenerator {
 
         map.providedFloors.addAll(floor.getUsedStates());
 
-        map.setLava(shape, this.config.lavaProvider(), baseHeight);
+        map.setLava(this.config.lavaProvider(), baseHeight);
     }
 }
