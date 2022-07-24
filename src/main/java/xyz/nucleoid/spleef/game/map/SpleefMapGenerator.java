@@ -8,9 +8,9 @@ import xyz.nucleoid.spleef.game.map.shape.ShapePlacer;
 import xyz.nucleoid.spleef.game.map.shape.SpleefShape;
 
 public final class SpleefMapGenerator {
-    private final SpleefMapConfig config;
+    private final SpleefGeneratedMapConfig config;
 
-    public SpleefMapGenerator(SpleefMapConfig config) {
+    public SpleefMapGenerator(SpleefGeneratedMapConfig config) {
         this.config = config;
     }
 
