@@ -44,7 +44,7 @@ public final class SpleefShape {
     }
 
     public boolean hasBlockAt(int x, int z) {
-        return this.get(x, z) == EMPTY;
+        return this.get(x, z) != EMPTY;
     }
 
     public boolean isFillAt(int x, int z) {
