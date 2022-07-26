@@ -3,7 +3,7 @@ package xyz.nucleoid.spleef.game;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
@@ -20,6 +20,7 @@ import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
 import xyz.nucleoid.plasmid.game.rule.GameRuleType;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 import xyz.nucleoid.spleef.game.map.SpleefMapGenerator;
+import xyz.nucleoid.spleef.game.map.SpleefTemplateMapBuilder;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
@@ -38,8 +39,16 @@ public final class SpleefWaiting {
 
     public static GameOpenProcedure open(GameOpenContext<SpleefConfig> context) {
         var config = context.config();
-        var generator = new SpleefMapGenerator(config.map());
-        var map = generator.build();
+        var map = config.map().map(
+            generatedConfig -> {
+                var generator = new SpleefMapGenerator(generatedConfig);
+                return generator.build();
+            },
+            templateConfig -> {
+                var builder = new SpleefTemplateMapBuilder(templateConfig);
+                return builder.build(context.server());
+            }
+        );
 
         var worldConfig = new RuntimeWorldConfig()
                 .setGenerator(map.asGenerator(context.server()))
@@ -74,7 +83,7 @@ public final class SpleefWaiting {
     private PlayerOfferResult offerPlayer(PlayerOffer offer) {
         var spawn = this.map.getSpawn();
         if (spawn == null) {
-            return offer.reject(new TranslatableText("text.spleef.no_spawn"));
+            return offer.reject(Text.translatable("text.spleef.no_spawn"));
         }
 
         return offer.accept(this.world, Vec3d.ofCenter(spawn))

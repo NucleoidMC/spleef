@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.10-SNAPSHOT'
+	id 'fabric-loom' version '0.12-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -26,11 +26,7 @@ dependencies {
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation 'xyz.nucleoid:plasmid:0.5.40+1.18'
-
-	modRuntimeOnly ("supercoder79:databreaker:0.2.8") {
-		exclude module : "fabric-loader"
-	}
+	modImplementation 'xyz.nucleoid:plasmid:0.5+1.19-SNAPSHOT'
 }
 
 processResources {

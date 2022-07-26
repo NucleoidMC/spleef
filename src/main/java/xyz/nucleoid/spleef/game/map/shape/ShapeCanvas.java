@@ -28,19 +28,19 @@ public final class ShapeCanvas {
     }
 
     public SpleefShape render() {
-        int width = this.maxX - this.minX + 1;
-        int height = this.maxZ - this.minZ + 1;
-
-        var shape = new byte[width * height];
+        var shape = new SpleefShape.Builder(this.minX, this.minZ, this.maxX, this.maxZ);
         for (var entry : Long2BooleanMaps.fastIterable(this.points)) {
             long pos = entry.getLongKey();
             int x = ChunkPos.getPackedX(pos) - this.minX;
             int z = ChunkPos.getPackedZ(pos) - this.minZ;
-            int index = x + z * width;
 
-            shape[index] = entry.getBooleanValue() ? SpleefShape.FILL : SpleefShape.OUTLINE;
+            if (entry.getBooleanValue()) {
+                shape.putFill(x, z);
+            } else {
+                shape.putOutline(x, z);
+            }
         }
 
-        return new SpleefShape(this.minX, this.minZ, this.maxX, this.maxZ, shape);
+        return shape.build();
     }
 }
