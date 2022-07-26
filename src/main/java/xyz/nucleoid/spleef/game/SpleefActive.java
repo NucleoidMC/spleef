@@ -237,10 +237,14 @@ public final class SpleefActive {
     }
 
     private ActionResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
-        if (!player.isSpectator() && source == DamageSource.LAVA && !hasEnded) {
+        if (!player.isSpectator() && isEliminatingSource(source) && !hasEnded) {
             this.eliminatePlayer(player);
         }
         return ActionResult.FAIL;
+    }
+
+    private static boolean isEliminatingSource(final DamageSource source) {
+        return source == DamageSource.LAVA || source.isOutOfWorld();
     }
 
     private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {

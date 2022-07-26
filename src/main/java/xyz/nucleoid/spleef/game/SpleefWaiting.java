@@ -20,6 +20,7 @@ import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
 import xyz.nucleoid.plasmid.game.rule.GameRuleType;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 import xyz.nucleoid.spleef.game.map.SpleefMapGenerator;
+import xyz.nucleoid.spleef.game.map.SpleefTemplateMapBuilder;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
@@ -38,8 +39,16 @@ public final class SpleefWaiting {
 
     public static GameOpenProcedure open(GameOpenContext<SpleefConfig> context) {
         var config = context.config();
-        var generator = new SpleefMapGenerator(config.map());
-        var map = generator.build();
+        var map = config.map().map(
+            generatedConfig -> {
+                var generator = new SpleefMapGenerator(generatedConfig);
+                return generator.build();
+            },
+            templateConfig -> {
+                var builder = new SpleefTemplateMapBuilder(templateConfig);
+                return builder.build(context.server());
+            }
+        );
 
         var worldConfig = new RuntimeWorldConfig()
                 .setGenerator(map.asGenerator(context.server()))
