@@ -30,7 +30,9 @@ public final class SpleefMapGenerator {
 
         int offsetX = this.config.shape().getSpawnOffsetX();
         int offsetZ = this.config.shape().getSpawnOffsetZ();
-        map.setSpawn(new BlockPos(offsetX, this.config.levels() * this.config.levelHeight() + 3, offsetZ));
+
+        BlockPos spawn = new BlockPos(offsetX, this.config.levels() * this.config.levelHeight() + 3, offsetZ);
+        map.setSpawn(this.config.spawn().apply(spawn));
 
         return map;
     }
