@@ -31,8 +31,8 @@ public final class ShapeCanvas {
         var shape = new SpleefShape.Builder(this.minX, this.minZ, this.maxX, this.maxZ);
         for (var entry : Long2BooleanMaps.fastIterable(this.points)) {
             long pos = entry.getLongKey();
-            int x = ChunkPos.getPackedX(pos) - this.minX;
-            int z = ChunkPos.getPackedZ(pos) - this.minZ;
+            int x = ChunkPos.getPackedX(pos);
+            int z = ChunkPos.getPackedZ(pos);
 
             if (entry.getBooleanValue()) {
                 shape.putFill(x, z);
