@@ -4,8 +4,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import xyz.nucleoid.codecs.MoreCodecs;
 
@@ -27,7 +27,7 @@ public record SpleefTemplateMapConfig(
     public record Levels(String region, Block block) {
         public static final Codec<Levels> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.fieldOf("region").forGetter(Levels::region),
-            Registry.BLOCK.getCodec().fieldOf("block").forGetter(Levels::block)
+            Registries.BLOCK.getCodec().fieldOf("block").forGetter(Levels::block)
         ).apply(i, Levels::new));
     }
 

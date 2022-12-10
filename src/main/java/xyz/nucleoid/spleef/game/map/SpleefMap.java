@@ -162,7 +162,7 @@ public final class SpleefMap {
 
         level.forEach(pos -> {
             mutablePos.set(pos.getX(), y, pos.getZ());
-            world.setBlockState(mutablePos, this.lavaProvider.getBlockState(random, mutablePos));
+            world.setBlockState(mutablePos, this.lavaProvider.get(random, mutablePos));
         });
     }
 
