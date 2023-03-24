@@ -93,7 +93,7 @@ public final class SpleefWaiting {
                     player.changeGameMode(GameMode.ADVENTURE);
                     player.addStatusEffect(new StatusEffectInstance(
                             StatusEffects.NIGHT_VISION,
-                            20 * 60 * 60,
+                            StatusEffectInstance.INFINITE,
                             1,
                             true,
                             false

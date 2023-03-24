@@ -57,7 +57,7 @@ public final class SpleefTemplateMapBuilder {
             throw new GameOpenException(Text.literal("Found no spawn region in map template: " + this.config.template()));
         }
 
-        map.setSpawn(new BlockPos(spawnRegion.center()));
+        map.setSpawn(BlockPos.ofFloored(spawnRegion.center()));
 
         return map;
     }

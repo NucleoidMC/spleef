@@ -25,6 +25,7 @@ import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
 import xyz.nucleoid.plasmid.game.player.PlayerOffer;
 import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
 import xyz.nucleoid.plasmid.game.rule.GameRuleType;
+import xyz.nucleoid.spleef.Spleef;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
@@ -244,7 +245,7 @@ public final class SpleefActive {
     }
 
     private static boolean isEliminatingSource(final DamageSource source) {
-        return source == DamageSource.LAVA || source.isOutOfWorld();
+        return source.isIn(Spleef.ELIMINATES_PLAYERS);
     }
 
     private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
