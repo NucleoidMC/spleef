@@ -1,7 +1,17 @@
 {
   "type": "spleef:spleef",
   "icon": "minecraft:diamond_shovel",
-  "description": "game.spleef.standard.desc",
+  "description": [
+    {
+      "translate": "game.spleef.standard.desc.1"
+    },
+    {
+      "translate": "game.spleef.standard.desc.2"
+    },
+    {
+      "translate": "game.spleef.standard.desc.3"
+    }
+  ],
   "map": {
     "shape": {
       "type": "spleef:circle",
