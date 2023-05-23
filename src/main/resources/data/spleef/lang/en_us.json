@@ -4,7 +4,9 @@
   "game.spleef.standard_projectiles": "Spleef with Projectiles",
   "game.spleef.standard_decay": "Spleef with Decay",
 
-  "game.spleef.standard.desc": "In spleef, you must break the blocks beneath players to make them fall!",
+  "game.spleef.standard.desc.1": "In spleef, you must break",
+  "game.spleef.standard.desc.2": "the blocks beneath players",
+  "game.spleef.standard.desc.3": "to make them fall!",
   "game.spleef.lava.msg": "Lava is now rising!",
 
   "text.spleef.bar.dropping": "Dropping in: %s...",

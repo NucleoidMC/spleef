@@ -1,7 +1,17 @@
 {
   "type": "spleef:spleef",
   "icon": "minecraft:snowball",
-  "description": "game.spleef.standard.desc",
+  "description": [
+    {
+      "translate": "game.spleef.standard.desc.1"
+    },
+    {
+      "translate": "game.spleef.standard.desc.2"
+    },
+    {
+      "translate": "game.spleef.standard.desc.3"
+    }
+  ],
   "map": {
     "template": "spleef:snowglobe",
     "spawn_region": "spawn",
