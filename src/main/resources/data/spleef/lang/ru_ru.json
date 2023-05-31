@@ -13,6 +13,6 @@
   "text.spleef.bar.dropping.none": "Падение...",
   "text.spleef.eliminated": "%s выбыл из игры!",
   "text.spleef.no_spawn": "На карте нет заданной точки появления!",
-  "text.spleef.no_winners": "Игры окончена, никто не победил!",
+  "text.spleef.no_winners": "Игра окончена, никто не победил!",
   "text.spleef.win": "%s победил!"
 }
