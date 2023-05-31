@@ -4,7 +4,9 @@
   "game.spleef.standard_projectiles": "Сплиф со снарядами",
   "game.spleef.standard_decay": "Сплиф с распадом",
 
-  "game.spleef.standard.desc": "Разрушайте блоки под игроками, чтобы они упали!",
+  "game.spleef.standard.desc.1": "Разрушайте блоки",
+  "game.spleef.standard.desc.2": "под игроками,",
+  "game.spleef.standard.desc.3": "чтобы они упали!",
   "game.spleef.lava.msg": "Лава начала подниматься!",
 
   "text.spleef.bar.dropping": "Падение: %s...",
