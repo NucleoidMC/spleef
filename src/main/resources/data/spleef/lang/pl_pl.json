@@ -1,0 +1,17 @@
+{
+  "game.spleef.standard": "Spleef",
+  "game.spleef.standard_projectiles": "Spleef z Pociskami",
+  "game.spleef.standard_decay": "Spleef z rozpadem",
+
+  "game.spleef.standard.desc.1": "W spleefie, musisz niszczyć",
+  "game.spleef.standard.desc.2": "bloki poniżej graczami, aby",
+  "game.spleef.standard.desc.3": "spadli!",
+  "game.spleef.lava.msg": "Lawa się wznosi!",
+
+  "text.spleef.bar.dropping": "Warstwa zostanie usunięta za: %s...",
+  "text.spleef.bar.dropping.none": "Warsta zostaje usunięta...",
+  "text.spleef.eliminated": "%s został wyeliminowany!",
+  "text.spleef.no_spawn": "Brak zdefiniowanego spawnu na mapie!",
+  "text.spleef.no_winners": "Gra się zakończyła, ale nikt nie wygrał!",
+  "text.spleef.win": "%s wygrał!"
+}
