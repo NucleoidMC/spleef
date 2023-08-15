@@ -7,6 +7,9 @@ import xyz.nucleoid.plasmid.game.common.GlobalWidgets;
 import xyz.nucleoid.plasmid.game.common.widget.BossBarWidget;
 
 public final class SpleefTimerBar {
+    private static final Text NONE_TITLE = getBarTitle(Text.translatable("text.spleef.bar.dropping.none"), Formatting.GREEN);
+    private static final Text LAVA_TITLE = getBarTitle(Text.translatable("game.spleef.lava.msg"), Formatting.RED);
+
     private final BossBarWidget widget;
 
     SpleefTimerBar(BossBarWidget widget) {
@@ -14,8 +17,7 @@ public final class SpleefTimerBar {
     }
 
     static SpleefTimerBar create(GlobalWidgets widgets) {
-        var title = getBarTitle(Text.translatable("text.spleef.bar.dropping.none"), Formatting.GREEN);
-        return new SpleefTimerBar(widgets.addBossBar(title, BossBar.Color.GREEN, BossBar.Style.NOTCHED_10));
+        return new SpleefTimerBar(widgets.addBossBar(NONE_TITLE, BossBar.Color.GREEN, BossBar.Style.NOTCHED_10));
     }
 
     public void update(long ticksUntilDrop, long totalTicksUntilDrop) {
@@ -25,8 +27,13 @@ public final class SpleefTimerBar {
         }
     }
 
+    public void setBarNone() {
+        this.widget.setTitle(NONE_TITLE);
+        this.widget.setProgress(1f);
+    }
+
     public void setBarLava(){
-        this.widget.setTitle(getBarTitle(Text.translatable("game.spleef.lava.msg"), Formatting.RED));
+        this.widget.setTitle(LAVA_TITLE);
         this.widget.setStyle(BossBar.Color.RED, BossBar.Style.NOTCHED_10);
         this.widget.setProgress(1f);
     }
