@@ -136,7 +136,9 @@ public final class SpleefActive {
             this.map.tickLavaRise(this.world, time, lavaRise);
         }
 
-        if (time > this.nextLevelDropTime) {
+        if (this.config.levelBreakInterval() < 0) {
+            this.timerBar.setBarNone();
+        } else if (time > this.nextLevelDropTime) {
             if (this.nextLevelDropTime != -1) {
                 this.map.tryDropLevel(this.world);
             }
