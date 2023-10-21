@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import xyz.nucleoid.plasmid.game.GameType;
 import xyz.nucleoid.spleef.game.SpleefConfig;
 import xyz.nucleoid.spleef.game.SpleefWaiting;
+import xyz.nucleoid.spleef.game.action.*;
 import xyz.nucleoid.spleef.game.map.shape.renderer.*;
 
 public final class Spleef implements ModInitializer {
@@ -31,5 +32,11 @@ public final class Spleef implements ModInitializer {
         MapShapeRenderer.REGISTRY.register(new Identifier(Spleef.ID, "square"), SquareShapeRenderer.CODEC);
         MapShapeRenderer.REGISTRY.register(new Identifier(Spleef.ID, "sierpinski_carpet"), SierpinskiCarpetShapeRenderer.CODEC);
         MapShapeRenderer.REGISTRY.register(new Identifier(Spleef.ID, "pattern"), PatternShapeRenderer.CODEC);
+
+        BlockAction.REGISTRY.register(new Identifier(Spleef.ID, "add_status_effect"), AddStatusEffectBlockAction.CODEC);
+        BlockAction.REGISTRY.register(new Identifier(Spleef.ID, "give_item_stack"), GiveItemStackBlockAction.CODEC);
+        BlockAction.REGISTRY.register(new Identifier(Spleef.ID, "restock_projectile"), RestockProjectileBlockAction.CODEC);
+        BlockAction.REGISTRY.register(new Identifier(Spleef.ID, "send_message"), SendMessageBlockAction.CODEC);
+        BlockAction.REGISTRY.register(new Identifier(Spleef.ID, "sequence"), SequenceBlockAction.CODEC);
     }
 }
