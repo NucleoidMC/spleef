@@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -36,14 +37,18 @@ public record ToolConfig(ItemStack stack, int recipients) {
             return ItemStack.EMPTY;
         }
 
-        var shovelBuilder = ItemStackBuilder.of(this.stack())
-                .setUnbreakable()
-                .addEnchantment(Enchantments.EFFICIENCY, 2);
+        var toolBuilder = ItemStackBuilder.of(this.stack())
+                .setUnbreakable();
 
-        for (var state : map.providedFloors) {
-            shovelBuilder.addCanDestroy(state.getBlock());
+        // Avoid adding a duplicate enchantment
+        if (EnchantmentHelper.getLevel(Enchantments.EFFICIENCY, this.stack()) == 0) {
+            toolBuilder.addEnchantment(Enchantments.EFFICIENCY, 2);
         }
 
-        return shovelBuilder.build();
+        for (var state : map.providedFloors) {
+            toolBuilder.addCanDestroy(state.getBlock());
+        }
+
+        return toolBuilder.build();
     }
 }
