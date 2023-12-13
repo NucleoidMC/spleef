@@ -26,7 +26,9 @@ import xyz.nucleoid.plasmid.game.player.PlayerOffer;
 import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
 import xyz.nucleoid.plasmid.game.rule.GameRuleType;
 import xyz.nucleoid.spleef.Spleef;
+import xyz.nucleoid.spleef.game.action.BlockAction;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
+import xyz.nucleoid.stimuli.event.block.BlockBreakEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 import xyz.nucleoid.stimuli.event.projectile.ProjectileHitEvent;
@@ -84,6 +86,7 @@ public final class SpleefActive {
 
             activity.listen(GamePlayerEvents.OFFER, active::offerPlayer);
 
+            activity.listen(BlockBreakEvent.EVENT, active::onBlockBreak);
             activity.listen(ProjectileHitEvent.BLOCK, active::onBlockHit);
 
             activity.listen(PlayerDamageEvent.EVENT, active::onPlayerDamage);
@@ -156,7 +159,7 @@ public final class SpleefActive {
         var projectiles = this.config.projectile();
         if (time > this.restockTime && projectiles != null) {
             if (this.restockTime != -1) {
-                this.restockProjectiles(projectiles);
+                this.restockProjectiles();
             }
 
             this.restockTime = time + projectiles.restockInterval();
@@ -175,22 +178,39 @@ public final class SpleefActive {
         }
     }
 
-    private void restockProjectiles(ProjectileConfig projectileConfig) {
+    private void restockProjectiles() {
+        for (var player : this.gameSpace.getPlayers()) {
+            this.restockProjectileFor(player);
+        }
+    }
+
+    public void restockProjectileFor(ServerPlayerEntity player) {
+        if (player.isSpectator()) return;
+
+        var projectileConfig = this.config.projectile();
         var projectileStack = projectileConfig.stack();
 
-        for (var player : this.gameSpace.getPlayers()) {
-            if (player.isSpectator()) continue;
-            if (player.getInventory().count(projectileStack.getItem()) >= projectileConfig.maximum()) continue;
+        if (player.getInventory().count(projectileStack.getItem()) >= projectileConfig.maximum()) return;
 
-            player.getInventory().insertStack(projectileStack.copy());
-            player.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1, 1);
-        }
+        player.getInventory().insertStack(projectileStack.copy());
+        player.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1, 1);
     }
 
     private void breakFloorBlock(BlockPos pos) {
         if (this.map.providedFloors.contains(this.world.getBlockState(pos))) {
             this.world.breakBlock(pos, false);
         }
+    }
+
+    private ActionResult onBlockBreak(ServerPlayerEntity player, ServerWorld world, BlockPos pos) {
+        var block = world.getBlockState(pos).getBlock();
+        var action = this.config.blockBreakActions().get(block);
+
+        if (action != null) {
+            BlockAction.apply(action, player, this.gameSpace.getPlayers(), this);
+        }
+
+        return ActionResult.PASS;
     }
 
     private ActionResult onBlockHit(ProjectileEntity entity, BlockHitResult hitResult) {
