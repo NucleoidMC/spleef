@@ -7,6 +7,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import net.minecraft.world.GameRules;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.plasmid.game.GameOpenContext;
 import xyz.nucleoid.plasmid.game.GameOpenProcedure;
@@ -51,6 +52,7 @@ public final class SpleefWaiting {
         );
 
         var worldConfig = new RuntimeWorldConfig()
+                .setGameRule(GameRules.LAVA_SOURCE_CONVERSION, true)
                 .setGenerator(map.asGenerator(context.server()))
                 .setTimeOfDay(config.timeOfDay());
 
