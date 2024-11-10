@@ -1,16 +1,27 @@
 package xyz.nucleoid.spleef.game;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
+import net.minecraft.item.BlockPredicatesChecker;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import xyz.nucleoid.plasmid.util.ItemStackBuilder;
+import net.minecraft.predicate.BlockPredicate;
+import net.minecraft.predicate.StatePredicate;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryEntryLookup;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.state.property.Property;
+import xyz.nucleoid.plasmid.api.util.ItemStackBuilder;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 
 public record ToolConfig(ItemStack stack, int recipients) {
@@ -32,7 +43,7 @@ public record ToolConfig(ItemStack stack, int recipients) {
         }, Function.identity());
     }, Either::right);
 
-    public ItemStack createStack(int index, SpleefMap map) {
+    public ItemStack createStack(MinecraftServer server, int index, SpleefMap map) {
         if (this.recipients > DEFAULT_RECIPIENTS && index >= this.recipients) {
             return ItemStack.EMPTY;
         }
@@ -40,14 +51,17 @@ public record ToolConfig(ItemStack stack, int recipients) {
         var toolBuilder = ItemStackBuilder.of(this.stack())
                 .setUnbreakable();
 
-        // Avoid adding a duplicate enchantment
-        if (EnchantmentHelper.getLevel(Enchantments.EFFICIENCY, this.stack()) == 0) {
-            toolBuilder.addEnchantment(Enchantments.EFFICIENCY, 2);
-        }
+        toolBuilder.addEnchantment(server, Enchantments.EFFICIENCY, 2);
 
-        for (var state : map.providedFloors) {
-            toolBuilder.addCanDestroy(state.getBlock());
-        }
+        toolBuilder.set(DataComponentTypes.CAN_BREAK, new BlockPredicatesChecker(map.providedFloors.stream().map(x -> {
+                var state = StatePredicate.Builder.create();
+
+                for (var prop : x.getProperties()) {
+                    state = state.exactMatch(prop, ((Property) prop).name(x.get(prop)));
+                }
+                return BlockPredicate.Builder.create().blocks(Registries.BLOCK, x.getBlock()).state(state).build();
+        }).toList(), true));
+
 
         return toolBuilder.build();
     }

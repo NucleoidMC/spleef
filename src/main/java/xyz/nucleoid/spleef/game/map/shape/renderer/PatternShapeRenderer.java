@@ -1,6 +1,7 @@
 package xyz.nucleoid.spleef.game.map.shape.renderer;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import xyz.nucleoid.spleef.game.map.shape.ShapeCanvas;
 
@@ -29,7 +30,7 @@ public class PatternShapeRenderer implements MapShapeRenderer {
                 return pattern;
             });
 
-    public static final Codec<PatternShapeRenderer> CODEC = RecordCodecBuilder.create(instance -> {
+    public static final MapCodec<PatternShapeRenderer> CODEC = RecordCodecBuilder.mapCodec(instance -> {
         return instance.group(
                 PATTERN_CODEC.fieldOf("tiles").forGetter(config -> config.tiles),
                 Codec.INT.fieldOf("tile_size").forGetter(config -> config.tileSize)
@@ -91,7 +92,7 @@ public class PatternShapeRenderer implements MapShapeRenderer {
     }
 
     @Override
-    public Codec<PatternShapeRenderer> getCodec() {
+    public MapCodec<PatternShapeRenderer> getCodec() {
         return CODEC;
     }
 }

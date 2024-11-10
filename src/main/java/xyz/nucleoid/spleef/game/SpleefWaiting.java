@@ -9,19 +9,20 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
-import xyz.nucleoid.plasmid.game.GameOpenContext;
-import xyz.nucleoid.plasmid.game.GameOpenProcedure;
-import xyz.nucleoid.plasmid.game.GameResult;
-import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.common.GameWaitingLobby;
-import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
-import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
-import xyz.nucleoid.plasmid.game.player.PlayerOffer;
-import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
-import xyz.nucleoid.plasmid.game.rule.GameRuleType;
+import xyz.nucleoid.plasmid.api.game.GameOpenContext;
+import xyz.nucleoid.plasmid.api.game.GameOpenProcedure;
+import xyz.nucleoid.plasmid.api.game.GameResult;
+import xyz.nucleoid.plasmid.api.game.GameSpace;
+import xyz.nucleoid.plasmid.api.game.common.GameWaitingLobby;
+import xyz.nucleoid.plasmid.api.game.event.GameActivityEvents;
+import xyz.nucleoid.plasmid.api.game.event.GamePlayerEvents;
+import xyz.nucleoid.plasmid.api.game.player.JoinAcceptor;
+import xyz.nucleoid.plasmid.api.game.player.JoinAcceptorResult;
+import xyz.nucleoid.plasmid.api.game.rule.GameRuleType;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 import xyz.nucleoid.spleef.game.map.SpleefMapGenerator;
 import xyz.nucleoid.spleef.game.map.SpleefTemplateMapBuilder;
+import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
@@ -71,9 +72,9 @@ public final class SpleefWaiting {
 
             game.listen(GameActivityEvents.REQUEST_START, waiting::requestStart);
 
-            game.listen(GamePlayerEvents.OFFER, waiting::offerPlayer);
-            game.listen(PlayerDamageEvent.EVENT, (player, source, amount) -> ActionResult.FAIL);
-            game.listen(PlayerDeathEvent.EVENT, (player, source) -> ActionResult.FAIL);
+            game.listen(GamePlayerEvents.ACCEPT, waiting::acceptPlayer);
+            game.listen(PlayerDamageEvent.EVENT, (player, source, amount) -> EventResult.DENY);
+            game.listen(PlayerDeathEvent.EVENT, (player, source) -> EventResult.DENY);
         });
     }
 
@@ -82,16 +83,10 @@ public final class SpleefWaiting {
         return GameResult.ok();
     }
 
-    private PlayerOfferResult offerPlayer(PlayerOffer offer) {
+    private JoinAcceptorResult acceptPlayer(JoinAcceptor offer) {
         var spawn = this.map.getSpawn();
-        if (spawn == null) {
-            return offer.reject(Text.translatable("text.spleef.no_spawn"));
-        }
-
-        return offer.accept(this.world, Vec3d.ofCenter(spawn))
-                .and(() -> {
-                    var player = offer.player();
-
+        return offer.teleport(this.world, Vec3d.ofCenter(spawn))
+                .thenRunForEach(player -> {
                     player.changeGameMode(GameMode.ADVENTURE);
                     player.addStatusEffect(new StatusEffectInstance(
                             StatusEffects.NIGHT_VISION,

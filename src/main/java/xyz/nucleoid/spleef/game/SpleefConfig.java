@@ -2,10 +2,10 @@ package xyz.nucleoid.spleef.game;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.util.dynamic.Codecs;
 import org.jetbrains.annotations.Nullable;
-import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
+import xyz.nucleoid.plasmid.api.game.common.config.WaitingLobbyConfig;
 import xyz.nucleoid.spleef.game.map.SpleefGeneratedMapConfig;
 import xyz.nucleoid.spleef.game.map.SpleefTemplateMapConfig;
 
@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public record SpleefConfig(
         Either<SpleefGeneratedMapConfig, SpleefTemplateMapConfig> map,
-        PlayerConfig players,
+        WaitingLobbyConfig players,
         ToolConfig tool,
         @Nullable ProjectileConfig projectile,
         @Nullable LavaRiseConfig lavaRise,
@@ -22,9 +22,9 @@ public record SpleefConfig(
         int timeOfDay,
         boolean unstableTnt
 ) {
-    public static final Codec<SpleefConfig> CODEC = RecordCodecBuilder.create(i -> i.group(
-        Codecs.xor(SpleefGeneratedMapConfig.CODEC, SpleefTemplateMapConfig.CODEC).fieldOf("map").forGetter(SpleefConfig::map),
-        PlayerConfig.CODEC.fieldOf("players").forGetter(SpleefConfig::players),
+    public static final MapCodec<SpleefConfig> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
+        Codec.xor(SpleefGeneratedMapConfig.CODEC, SpleefTemplateMapConfig.CODEC).fieldOf("map").forGetter(SpleefConfig::map),
+        WaitingLobbyConfig.CODEC.fieldOf("players").forGetter(SpleefConfig::players),
         ToolConfig.CODEC.optionalFieldOf("tool", ToolConfig.DEFAULT).forGetter(SpleefConfig::tool),
         ProjectileConfig.CODEC.optionalFieldOf("projectile").forGetter(config -> Optional.ofNullable(config.projectile())),
         LavaRiseConfig.CODEC.optionalFieldOf("lava_rise").forGetter(config -> Optional.ofNullable(config.lavaRise())),
@@ -36,7 +36,7 @@ public record SpleefConfig(
 
     private SpleefConfig(
             Either<SpleefGeneratedMapConfig, SpleefTemplateMapConfig> map,
-            PlayerConfig players,
+            WaitingLobbyConfig players,
             ToolConfig tool,
             Optional<ProjectileConfig> projectile,
             Optional<LavaRiseConfig> lavaRise,

@@ -3,8 +3,8 @@ package xyz.nucleoid.spleef.game;
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import xyz.nucleoid.plasmid.game.common.GlobalWidgets;
-import xyz.nucleoid.plasmid.game.common.widget.BossBarWidget;
+import xyz.nucleoid.plasmid.api.game.common.GlobalWidgets;
+import xyz.nucleoid.plasmid.api.game.common.widget.BossBarWidget;
 
 public final class SpleefTimerBar {
     private static final Text NONE_TITLE = getBarTitle(Text.translatable("text.spleef.bar.dropping.none"), Formatting.GREEN);

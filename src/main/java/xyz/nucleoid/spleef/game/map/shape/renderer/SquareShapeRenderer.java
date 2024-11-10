@@ -1,12 +1,13 @@
 package xyz.nucleoid.spleef.game.map.shape.renderer;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.util.math.BlockPos;
 import xyz.nucleoid.spleef.game.map.shape.ShapeCanvas;
 
 public record SquareShapeRenderer(int size) implements MapShapeRenderer {
-    public static final Codec<SquareShapeRenderer> CODEC = RecordCodecBuilder.create(instance -> {
+    public static final MapCodec<SquareShapeRenderer> CODEC = RecordCodecBuilder.mapCodec(instance -> {
         return instance.group(
                 Codec.INT.fieldOf("size").forGetter(SquareShapeRenderer::size)
         ).apply(instance, SquareShapeRenderer::new);
@@ -30,7 +31,7 @@ public record SquareShapeRenderer(int size) implements MapShapeRenderer {
     }
 
     @Override
-    public Codec<SquareShapeRenderer> getCodec() {
+    public MapCodec<SquareShapeRenderer> getCodec() {
         return CODEC;
     }
 }

@@ -3,13 +3,14 @@ package xyz.nucleoid.spleef.game.map.shape.renderer;
 import java.util.Optional;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.util.math.MathHelper;
 import xyz.nucleoid.spleef.game.map.shape.ShapeCanvas;
 
 public record SierpinskiCarpetShapeRenderer(int order, Optional<Integer> wallOrder) implements MapShapeRenderer {
-    public static final Codec<SierpinskiCarpetShapeRenderer> CODEC = RecordCodecBuilder.create(instance -> {
+    public static final MapCodec<SierpinskiCarpetShapeRenderer> CODEC = RecordCodecBuilder.mapCodec(instance -> {
         return instance.group(
                 Codec.intRange(0, Integer.MAX_VALUE).fieldOf("order").forGetter(SierpinskiCarpetShapeRenderer::order),
                 Codec.intRange(0, Integer.MAX_VALUE).optionalFieldOf("wall_order").forGetter(SierpinskiCarpetShapeRenderer::wallOrder)
@@ -65,7 +66,7 @@ public record SierpinskiCarpetShapeRenderer(int order, Optional<Integer> wallOrd
     }
 
     @Override
-    public Codec<SierpinskiCarpetShapeRenderer> getCodec() {
+    public MapCodec<SierpinskiCarpetShapeRenderer> getCodec() {
         return CODEC;
     }
 }

@@ -14,7 +14,7 @@ import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.map_templates.MapTemplate;
-import xyz.nucleoid.plasmid.game.world.generator.TemplateChunkGenerator;
+import xyz.nucleoid.plasmid.api.game.world.generator.TemplateChunkGenerator;
 import xyz.nucleoid.spleef.game.LavaRiseConfig;
 
 import java.util.ArrayList;

@@ -1,6 +1,8 @@
 package xyz.nucleoid.spleef.game;
 
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -17,16 +19,18 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.map_templates.BlockBounds;
-import xyz.nucleoid.plasmid.game.GameCloseReason;
-import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.common.GlobalWidgets;
-import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
-import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
-import xyz.nucleoid.plasmid.game.player.PlayerOffer;
-import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
-import xyz.nucleoid.plasmid.game.rule.GameRuleType;
+import xyz.nucleoid.plasmid.api.game.GameCloseReason;
+import xyz.nucleoid.plasmid.api.game.GameSpace;
+import xyz.nucleoid.plasmid.api.game.common.GlobalWidgets;
+import xyz.nucleoid.plasmid.api.game.event.GameActivityEvents;
+import xyz.nucleoid.plasmid.api.game.event.GamePlayerEvents;
+import xyz.nucleoid.plasmid.api.game.player.JoinAcceptor;
+import xyz.nucleoid.plasmid.api.game.player.JoinAcceptorResult;
+import xyz.nucleoid.plasmid.api.game.player.JoinIntent;
+import xyz.nucleoid.plasmid.api.game.rule.GameRuleType;
 import xyz.nucleoid.spleef.Spleef;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
+import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 import xyz.nucleoid.stimuli.event.projectile.ProjectileHitEvent;
@@ -82,7 +86,8 @@ public final class SpleefActive {
             activity.listen(GameActivityEvents.ENABLE, active::onEnable);
             activity.listen(GameActivityEvents.TICK, active::tick);
 
-            activity.listen(GamePlayerEvents.OFFER, active::offerPlayer);
+            activity.listen(GamePlayerEvents.OFFER, offer -> offer.intent() == JoinIntent.SPECTATE ? offer.accept() : offer.pass());
+            activity.listen(GamePlayerEvents.ACCEPT, active::acceptPlayer);
 
             activity.listen(ProjectileHitEvent.BLOCK, active::onBlockHit);
 
@@ -91,19 +96,23 @@ public final class SpleefActive {
         });
     }
 
-    private PlayerOfferResult offerPlayer(PlayerOffer offer) {
-        return offer.accept(this.world, Vec3d.ofCenter(this.map.getSpawn()))
-                .and(() -> offer.player().changeGameMode(GameMode.SPECTATOR));
+    private JoinAcceptorResult acceptPlayer(JoinAcceptor offer) {
+        var spawn = this.map.getSpawn();
+        return offer.teleport(this.world, Vec3d.ofCenter(spawn))
+                .thenRunForEach(player -> {
+                    player.changeGameMode(GameMode.SPECTATOR);
+                });
     }
 
     private void onEnable() {
-        var players = this.gameSpace.getPlayers().stream().collect(Collectors.toList());
-        Collections.shuffle(players);
-
         int index = 0;
-        for (var player : this.gameSpace.getPlayers()) {
+        for (var player : this.gameSpace.getPlayers().participants()) {
             this.spawnParticipant(player, index);
             index++;
+        }
+
+        for (var player : this.gameSpace.getPlayers().spectators()) {
+            player.changeGameMode(GameMode.SPECTATOR);
         }
     }
 
@@ -183,7 +192,7 @@ public final class SpleefActive {
             if (player.getInventory().count(projectileStack.getItem()) >= projectileConfig.maximum()) continue;
 
             player.getInventory().insertStack(projectileStack.copy());
-            player.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1, 1);
+            player.playSoundToPlayer(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1, 1);
         }
     }
 
@@ -193,12 +202,12 @@ public final class SpleefActive {
         }
     }
 
-    private ActionResult onBlockHit(ProjectileEntity entity, BlockHitResult hitResult) {
+    private EventResult onBlockHit(ProjectileEntity entity, BlockHitResult hitResult) {
         var projectiles = this.config.projectile();
-        if (projectiles == null) return ActionResult.FAIL;
+        if (projectiles == null) return EventResult.DENY;
 
         int radius = projectiles.radius();
-        if (radius <= 0) return ActionResult.PASS;
+        if (radius <= 0) return EventResult.DENY;
 
         var breakPos = hitResult.getBlockPos();
 
@@ -219,7 +228,7 @@ public final class SpleefActive {
             }
         }
 
-        return ActionResult.PASS;
+        return EventResult.PASS;
     }
 
     private void broadcastWin(WinResult result) {
@@ -239,29 +248,29 @@ public final class SpleefActive {
         players.playSound(SoundEvents.ENTITY_VILLAGER_YES);
     }
 
-    private ActionResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
+    private EventResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
         if (!player.isSpectator() && isEliminatingSource(source) && !hasEnded) {
             this.eliminatePlayer(player);
         }
-        return ActionResult.FAIL;
+        return EventResult.DENY;
     }
 
     private static boolean isEliminatingSource(final DamageSource source) {
         return source.isIn(Spleef.ELIMINATES_PLAYERS);
     }
 
-    private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+    private EventResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
         if (!player.isSpectator()) {
             this.eliminatePlayer(player);
         }
-        return ActionResult.FAIL;
+        return EventResult.DENY;
     }
 
     private void spawnParticipant(ServerPlayerEntity player, int index) {
         player.changeGameMode(GameMode.ADVENTURE);
         player.getInventory().clear();
 
-        ItemStack stack = this.config.tool().createStack(index, this.map);
+        ItemStack stack = this.config.tool().createStack(player.getServer(), index, this.map);
         if (!stack.isEmpty()) {
             player.getInventory().insertStack(stack);
         }

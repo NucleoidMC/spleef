@@ -1,11 +1,12 @@
 package xyz.nucleoid.spleef.game.map.shape.renderer;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import xyz.nucleoid.spleef.game.map.shape.ShapeCanvas;
 
 public record CircleShapeRenderer(int radius, int innerRadius) implements MapShapeRenderer {
-    public static final Codec<CircleShapeRenderer> CODEC = RecordCodecBuilder.create(instance -> {
+    public static final MapCodec<CircleShapeRenderer> CODEC = RecordCodecBuilder.mapCodec(instance -> {
         return instance.group(
                 Codec.INT.fieldOf("radius").forGetter(CircleShapeRenderer::radius),
                 Codec.INT.optionalFieldOf("inner_radius", 0).forGetter(CircleShapeRenderer::innerRadius)
@@ -41,7 +42,7 @@ public record CircleShapeRenderer(int radius, int innerRadius) implements MapSha
     }
 
     @Override
-    public Codec<CircleShapeRenderer> getCodec() {
+    public MapCodec<CircleShapeRenderer> getCodec() {
         return CODEC;
     }
 }
