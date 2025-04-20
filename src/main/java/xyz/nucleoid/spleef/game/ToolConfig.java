@@ -43,11 +43,11 @@ public record ToolConfig(ItemStack stack, int recipients) {
         }, Function.identity());
     }, Either::right);
 
-    public ItemStack createStack(MinecraftServer server, int index, SpleefMap map) {
-        if (this.recipients > DEFAULT_RECIPIENTS && index >= this.recipients) {
-            return ItemStack.EMPTY;
-        }
+    public boolean shouldReceiveTool(int index) {
+        return this.recipients == DEFAULT_RECIPIENTS || index < this.recipients;
+    }
 
+    public ItemStack createStack(MinecraftServer server, SpleefMap map) {
         var toolBuilder = ItemStackBuilder.of(this.stack())
                 .setUnbreakable();
 
