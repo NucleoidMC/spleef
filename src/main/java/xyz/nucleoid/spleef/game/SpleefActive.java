@@ -1,5 +1,6 @@
 package xyz.nucleoid.spleef.game;
 
+import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -269,6 +270,8 @@ public final class SpleefActive {
     private void spawnParticipant(ServerPlayerEntity player, int index) {
         player.changeGameMode(GameMode.ADVENTURE);
         player.getInventory().clear();
+
+        this.config.attributeModifiers().applyTo(player);
 
         ItemStack stack = this.config.tool().createStack(player.getServer(), index, this.map);
         if (!stack.isEmpty()) {
