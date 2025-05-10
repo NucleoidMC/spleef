@@ -14,6 +14,7 @@ import java.util.Optional;
 public record SpleefConfig(
         Either<SpleefGeneratedMapConfig, SpleefTemplateMapConfig> map,
         WaitingLobbyConfig players,
+        AttributeModifiersConfig attributeModifiers,
         ToolConfig tool,
         @Nullable ProjectileConfig projectile,
         @Nullable LavaRiseConfig lavaRise,
@@ -25,6 +26,7 @@ public record SpleefConfig(
     public static final MapCodec<SpleefConfig> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
         Codec.xor(SpleefGeneratedMapConfig.CODEC, SpleefTemplateMapConfig.CODEC).fieldOf("map").forGetter(SpleefConfig::map),
         WaitingLobbyConfig.CODEC.fieldOf("players").forGetter(SpleefConfig::players),
+        AttributeModifiersConfig.CODEC.optionalFieldOf("attribute_modifiers", AttributeModifiersConfig.EMPTY).forGetter(SpleefConfig::attributeModifiers),
         ToolConfig.CODEC.optionalFieldOf("tool", ToolConfig.DEFAULT).forGetter(SpleefConfig::tool),
         ProjectileConfig.CODEC.optionalFieldOf("projectile").forGetter(config -> Optional.ofNullable(config.projectile())),
         LavaRiseConfig.CODEC.optionalFieldOf("lava_rise").forGetter(config -> Optional.ofNullable(config.lavaRise())),
@@ -37,6 +39,7 @@ public record SpleefConfig(
     private SpleefConfig(
             Either<SpleefGeneratedMapConfig, SpleefTemplateMapConfig> map,
             WaitingLobbyConfig players,
+            AttributeModifiersConfig attributeModifiers,
             ToolConfig tool,
             Optional<ProjectileConfig> projectile,
             Optional<LavaRiseConfig> lavaRise,
@@ -46,7 +49,7 @@ public record SpleefConfig(
             boolean unstableTnt
     ) {
         this(
-                map, players, tool,
+                map, players, attributeModifiers, tool,
                 projectile.orElse(null),
                 lavaRise.orElse(null),
                 levelBreakInterval, decay,

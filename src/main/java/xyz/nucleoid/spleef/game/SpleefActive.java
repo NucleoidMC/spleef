@@ -1,5 +1,6 @@
 package xyz.nucleoid.spleef.game;
 
+import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -14,8 +15,10 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.BlockCollisionSpliterator;
 import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.map_templates.BlockBounds;
@@ -130,11 +133,13 @@ public final class SpleefActive {
             for (var player : this.gameSpace.getPlayers()) {
                 if (player.isSpectator()) continue;
 
-                var pos = player.getLandingPos().mutableCopy();
-                for (int corner = 0; corner < 4; corner++) {
-                    pos.setX(MathHelper.floor(player.getX() + (corner % 2 * 2 - 1) * 0.25));
-                    pos.setZ(MathHelper.floor(player.getZ() + (corner / 2 % 2 * 2 - 1) * 0.25));
+                var boundingBox = player.getBoundingBox();
+                var box = new Box(boundingBox.minX, boundingBox.minY - MathHelper.EPSILON, boundingBox.minZ, boundingBox.maxX, boundingBox.minY, boundingBox.maxZ);
 
+                var collisions = new BlockCollisionSpliterator<>(player.getWorld(), player, box, false, (pos, voxelShape) -> pos);
+
+                while (collisions.hasNext()) {
+                    var pos = collisions.next();
                     this.map.tryBeginDecayAt(pos, this.config.decay());
                 }
             }
@@ -269,6 +274,8 @@ public final class SpleefActive {
     private void spawnParticipant(ServerPlayerEntity player, int index) {
         player.changeGameMode(GameMode.ADVENTURE);
         player.getInventory().clear();
+
+        this.config.attributeModifiers().applyTo(player);
 
         ItemStack stack = this.config.tool().createStack(player.getServer(), index, this.map);
         if (!stack.isEmpty()) {

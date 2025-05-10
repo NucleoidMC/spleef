@@ -95,6 +95,8 @@ public final class SpleefWaiting {
                             true,
                             false
                     ));
+
+                    this.config.attributeModifiers().applyTo(player);
                 });
     }
 }
