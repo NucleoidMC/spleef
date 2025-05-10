@@ -30,6 +30,7 @@ import xyz.nucleoid.plasmid.api.game.event.GamePlayerEvents;
 import xyz.nucleoid.plasmid.api.game.player.JoinAcceptor;
 import xyz.nucleoid.plasmid.api.game.player.JoinAcceptorResult;
 import xyz.nucleoid.plasmid.api.game.player.JoinIntent;
+import xyz.nucleoid.plasmid.api.game.player.MutablePlayerSet;
 import xyz.nucleoid.plasmid.api.game.rule.GameRuleType;
 import xyz.nucleoid.spleef.Spleef;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
@@ -50,6 +51,7 @@ public final class SpleefActive {
     private final SpleefTimerBar timerBar;
     private long nextLevelDropTime = -1;
 
+    private final MutablePlayerSet toolRecipients;
     private long restockTime = -1;
 
     private final boolean ignoreWinState;
@@ -61,6 +63,8 @@ public final class SpleefActive {
         this.world = world;
         this.map = map;
         this.config = config;
+
+        this.toolRecipients = new MutablePlayerSet(gameSpace.getServer());
 
         this.ignoreWinState = gameSpace.getPlayers().size() <= 1;
 
@@ -91,6 +95,7 @@ public final class SpleefActive {
 
             activity.listen(GamePlayerEvents.OFFER, offer -> offer.intent() == JoinIntent.SPECTATE ? offer.accept() : offer.pass());
             activity.listen(GamePlayerEvents.ACCEPT, active::acceptPlayer);
+            activity.listen(GamePlayerEvents.REMOVE, active::removePlayer);
 
             activity.listen(ProjectileHitEvent.BLOCK, active::onBlockHit);
 
@@ -110,7 +115,12 @@ public final class SpleefActive {
     private void onEnable() {
         int index = 0;
         for (var player : this.gameSpace.getPlayers().participants()) {
-            this.spawnParticipant(player, index);
+            this.spawnParticipant(player);
+
+            if (this.config.tool().shouldReceiveTool(index)) {
+                this.giveTool(player);
+            }
+
             index++;
         }
 
@@ -271,15 +281,25 @@ public final class SpleefActive {
         return EventResult.DENY;
     }
 
-    private void spawnParticipant(ServerPlayerEntity player, int index) {
+    private void spawnParticipant(ServerPlayerEntity player) {
         player.changeGameMode(GameMode.ADVENTURE);
         player.getInventory().clear();
 
         this.config.attributeModifiers().applyTo(player);
+    }
 
-        ItemStack stack = this.config.tool().createStack(player.getServer(), index, this.map);
-        if (!stack.isEmpty()) {
+    private void giveTool(ServerPlayerEntity player) {
+        if (player != null) {
+            ItemStack stack = this.config.tool().createStack(player.getServer(), this.map);
             player.getInventory().insertStack(stack);
+
+            this.toolRecipients.add(player);
+        }
+    }
+
+    private void removePlayer(ServerPlayerEntity player) {
+        if (this.toolRecipients.contains(player)) {
+            this.giveTool(this.getNextToolRecipient());
         }
     }
 
@@ -292,6 +312,20 @@ public final class SpleefActive {
         players.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP);
 
         player.changeGameMode(GameMode.SPECTATOR);
+
+        if (this.toolRecipients.contains(player)) {
+            this.giveTool(this.getNextToolRecipient());
+        }
+    }
+
+    private ServerPlayerEntity getNextToolRecipient() {
+        for (var player : this.gameSpace.getPlayers()) {
+            if (!player.isSpectator() && !this.toolRecipients.contains(player)) {
+                return player;
+            }
+        }
+
+        return null;
     }
 
     private WinResult checkWinResult() {
