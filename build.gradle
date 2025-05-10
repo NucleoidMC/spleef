@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.7.+'
+	id 'fabric-loom' version '1.10.+'
 	id 'maven-publish'
 }
 
@@ -26,7 +26,7 @@ dependencies {
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation 'xyz.nucleoid:plasmid:0.6.0-SNAPSHOT+1.21.3'
+	modImplementation 'xyz.nucleoid:plasmid:0.6.3-SNAPSHOT+1.21.4'
 }
 
 processResources {
