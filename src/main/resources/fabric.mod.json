@@ -14,8 +14,8 @@
   "depends": {
     "fabricloader": ">=0.16.0",
     "fabric": "*",
-    "minecraft": ">=1.21.3",
+    "minecraft": ">=1.21.5",
     "plasmid": "0.6.x",
-    "java": ">=17"
+    "java": ">=21"
   }
 }

@@ -60,7 +60,7 @@ public record ToolConfig(ItemStack stack, int recipients) {
                     state = state.exactMatch(prop, ((Property) prop).name(x.get(prop)));
                 }
                 return BlockPredicate.Builder.create().blocks(Registries.BLOCK, x.getBlock()).state(state).build();
-        }).toList(), true));
+        }).toList()));
 
 
         return toolBuilder.build();
