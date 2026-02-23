@@ -1,14 +1,14 @@
 plugins {
-	id 'fabric-loom' version '1.10.+'
+	id 'fabric-loom' version '1.15-SNAPSHOT'
 	id 'maven-publish'
 }
 
-sourceCompatibility = JavaVersion.VERSION_21
-targetCompatibility = JavaVersion.VERSION_21
-
-archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
 
 repositories {
 	maven { url = "https://maven.nucleoid.xyz/" }
@@ -26,7 +26,7 @@ dependencies {
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation 'xyz.nucleoid:plasmid:0.6.4-SNAPSHOT+1.21.5'
+	modImplementation 'xyz.nucleoid:plasmid:0.6.7-SNAPSHOT+1.21.11'
 }
 
 processResources {
@@ -37,13 +37,19 @@ processResources {
 	}
 }
 
-tasks.withType(JavaCompile).configureEach {
-	it.options.encoding = "UTF-8"
-	it.options.release = 21
-}
-
 java {
 	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+	inputs.property "archivesName", project.base.archivesName
+
+	from("LICENSE") {
+		rename { "${it}_${inputs.properties.archivesName}"}
+	}
 }
 
 jar {

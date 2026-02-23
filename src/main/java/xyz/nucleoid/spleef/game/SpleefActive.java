@@ -1,17 +1,12 @@
 package xyz.nucleoid.spleef.game;
 
-import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -38,9 +33,6 @@ import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 import xyz.nucleoid.stimuli.event.projectile.ProjectileHitEvent;
-
-import java.util.Collections;
-import java.util.stream.Collectors;
 
 public final class SpleefActive {
     private final GameSpace gameSpace;
@@ -107,9 +99,7 @@ public final class SpleefActive {
     private JoinAcceptorResult acceptPlayer(JoinAcceptor offer) {
         var spawn = this.map.getSpawn();
         return offer.teleport(this.world, Vec3d.ofCenter(spawn))
-                .thenRunForEach(player -> {
-                    player.changeGameMode(GameMode.SPECTATOR);
-                });
+                .thenRunForEach(player -> player.changeGameMode(GameMode.SPECTATOR));
     }
 
     private void onEnable() {
@@ -146,7 +136,7 @@ public final class SpleefActive {
                 var boundingBox = player.getBoundingBox();
                 var box = new Box(boundingBox.minX, boundingBox.minY - MathHelper.EPSILON, boundingBox.minZ, boundingBox.maxX, boundingBox.minY, boundingBox.maxZ);
 
-                var collisions = new BlockCollisionSpliterator<>(player.getWorld(), player, box, false, (pos, voxelShape) -> pos);
+                var collisions = new BlockCollisionSpliterator<>(player.getEntityWorld(), player, box, false, (pos, voxelShape) -> pos);
 
                 while (collisions.hasNext()) {
                     var pos = collisions.next();
@@ -207,7 +197,7 @@ public final class SpleefActive {
             if (player.getInventory().count(projectileStack.getItem()) >= projectileConfig.maximum()) continue;
 
             player.getInventory().insertStack(projectileStack.copy());
-            player.playSoundToPlayer(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1, 1);
+            player.playSound(SoundEvents.ENTITY_ITEM_PICKUP, 1, 1);
         }
     }
 
@@ -290,7 +280,7 @@ public final class SpleefActive {
 
     private void giveTool(ServerPlayerEntity player) {
         if (player != null) {
-            ItemStack stack = this.config.tool().createStack(player.getServer(), this.map);
+            ItemStack stack = this.config.tool().createStack(player.getEntityWorld().getServer(), this.map);
             player.getInventory().insertStack(stack);
 
             this.toolRecipients.add(player);
