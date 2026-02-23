@@ -1,10 +1,10 @@
 package xyz.nucleoid.spleef.game.map.shape;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.gen.stateprovider.BlockStateProvider;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import xyz.nucleoid.map_templates.MapTemplate;
 
 import java.util.Set;
@@ -12,13 +12,13 @@ import java.util.Set;
 public final class ShapePlacer {
     private final MapTemplate template;
     private final BlockStateProvider provider;
-    private final Random random;
+    private final RandomSource random;
 
     private final Set<BlockState> usedStates = new ReferenceOpenHashSet<>();
 
-    private final BlockPos.Mutable mutablePos = new BlockPos.Mutable();
+    private final BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
 
-    public ShapePlacer(MapTemplate template, BlockStateProvider provider, Random random) {
+    public ShapePlacer(MapTemplate template, BlockStateProvider provider, RandomSource random) {
         this.template = template;
         this.provider = provider;
         this.random = random;
@@ -41,7 +41,7 @@ public final class ShapePlacer {
     }
 
     private void set(BlockPos pos) {
-        var state = this.provider.get(this.random, pos);
+        var state = this.provider.getState(this.random, pos);
         this.usedStates.add(state);
 
         this.template.setBlockState(pos, state);

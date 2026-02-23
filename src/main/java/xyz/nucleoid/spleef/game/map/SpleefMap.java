@@ -6,12 +6,12 @@ import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMaps;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.gen.stateprovider.BlockStateProvider;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.map_templates.MapTemplate;
 import xyz.nucleoid.plasmid.api.game.world.generator.TemplateChunkGenerator;
@@ -40,7 +40,7 @@ public final class SpleefMap {
     private int lavaHeight = -1;
     private long lastLavaRise;
 
-    private BlockPos spawn = BlockPos.ORIGIN;
+    private BlockPos spawn = BlockPos.ZERO;
 
     public SpleefMap(MapTemplate template, int ceilingY) {
         this.template = template;
@@ -64,8 +64,8 @@ public final class SpleefMap {
         this.lavaMinY = lavaMinY;
     }
 
-    public void tickDecay(ServerWorld world) {
-        var mutablePos = new BlockPos.Mutable();
+    public void tickDecay(ServerLevel world) {
+        var mutablePos = new BlockPos.MutableBlockPos();
 
         // Remove decayed blocks from previous ticks
         var iterator = Long2IntMaps.fastIterator(this.decayPositions);
@@ -76,7 +76,7 @@ public final class SpleefMap {
 
             if (ticksLeft == 0) {
                 mutablePos.set(pos);
-                world.breakBlock(mutablePos, false);
+                world.destroyBlock(mutablePos, false);
                 iterator.remove();
             } else {
                 entry.setValue(ticksLeft - 1);
@@ -91,7 +91,7 @@ public final class SpleefMap {
         }
     }
 
-    public void tryDropLevel(ServerWorld world) {
+    public void tryDropLevel(ServerLevel world) {
         if (this.topLevel < 0) {
             return;
         }
@@ -107,9 +107,9 @@ public final class SpleefMap {
         this.topLevel = nextLevel;
     }
 
-    public int getMaxPlayerLevel(ServerWorld world) {
+    public int getMaxPlayerLevel(ServerLevel world) {
         int maxPlayerLevel = 0;
-        for (var player : world.getPlayers()) {
+        for (var player : world.players()) {
             if (player.isSpectator()) continue;
 
             int playerLevel = this.getLevelBelow(player.getBlockY());
@@ -131,11 +131,11 @@ public final class SpleefMap {
         return 0;
     }
 
-    private void deleteLevel(ServerWorld world, SpleefLevel level) {
+    private void deleteLevel(ServerLevel world, SpleefLevel level) {
         level.forEach(pos -> world.removeBlock(pos, false));
     }
 
-    public void tickLavaRise(ServerWorld world, long time, LavaRiseConfig config) {
+    public void tickLavaRise(ServerLevel world, long time, LavaRiseConfig config) {
         if (this.topLevel >= 0) {
             return;
         }
@@ -154,7 +154,7 @@ public final class SpleefMap {
 
         int y = lavaHeight + this.lavaMinY;
 
-        var mutablePos = new BlockPos.Mutable();
+        var mutablePos = new BlockPos.MutableBlockPos();
         var random = world.random;
 
         int levelIndex = this.getLevelBelow(y);
@@ -162,7 +162,7 @@ public final class SpleefMap {
 
         level.forEach(pos -> {
             mutablePos.set(pos.getX(), y, pos.getZ());
-            world.setBlockState(mutablePos, this.lavaProvider.get(random, mutablePos));
+            world.setBlockAndUpdate(mutablePos, this.lavaProvider.getState(random, mutablePos));
         });
     }
 

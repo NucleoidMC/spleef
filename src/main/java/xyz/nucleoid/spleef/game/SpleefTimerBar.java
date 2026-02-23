@@ -1,14 +1,14 @@
 package xyz.nucleoid.spleef.game;
 
-import net.minecraft.entity.boss.BossBar;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.world.BossEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 import xyz.nucleoid.plasmid.api.game.common.GlobalWidgets;
 import xyz.nucleoid.plasmid.api.game.common.widget.BossBarWidget;
 
 public final class SpleefTimerBar {
-    private static final Text NONE_TITLE = getBarTitle(Text.translatable("text.spleef.bar.dropping.none"), Formatting.GREEN);
-    private static final Text LAVA_TITLE = getBarTitle(Text.translatable("game.spleef.lava.msg"), Formatting.RED);
+    private static final Component NONE_TITLE = getBarTitle(Component.translatable("text.spleef.bar.dropping.none"), ChatFormatting.GREEN);
+    private static final Component LAVA_TITLE = getBarTitle(Component.translatable("game.spleef.lava.msg"), ChatFormatting.RED);
 
     private final BossBarWidget widget;
 
@@ -17,7 +17,7 @@ public final class SpleefTimerBar {
     }
 
     static SpleefTimerBar create(GlobalWidgets widgets) {
-        return new SpleefTimerBar(widgets.addBossBar(NONE_TITLE, BossBar.Color.GREEN, BossBar.Style.NOTCHED_10));
+        return new SpleefTimerBar(widgets.addBossBar(NONE_TITLE, BossEvent.BossBarColor.GREEN, BossEvent.BossBarOverlay.NOTCHED_10));
     }
 
     public void update(long ticksUntilDrop, long totalTicksUntilDrop) {
@@ -34,22 +34,22 @@ public final class SpleefTimerBar {
 
     public void setBarLava(){
         this.widget.setTitle(LAVA_TITLE);
-        this.widget.setStyle(BossBar.Color.RED, BossBar.Style.NOTCHED_10);
+        this.widget.setStyle(BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.NOTCHED_10);
         this.widget.setProgress(1f);
     }
 
-    private Text getDroppingText(long ticksUntilDrop) {
+    private Component getDroppingText(long ticksUntilDrop) {
         long secondsUntilDrop = ticksUntilDrop / 20;
 
         long minutes = secondsUntilDrop / 60;
         long seconds = secondsUntilDrop % 60;
         var time = String.format("%02d:%02d", minutes, seconds);
 
-        return getBarTitle(Text.translatable("text.spleef.bar.dropping", time), Formatting.GREEN);
+        return getBarTitle(Component.translatable("text.spleef.bar.dropping", time), ChatFormatting.GREEN);
     }
 
-    private static Text getBarTitle(Text customText, Formatting color) {
-        var gameName = Text.translatable("gameType.spleef.spleef").formatted(Formatting.BOLD);
-        return Text.empty().append(gameName).append(" - ").append(customText).formatted(color);
+    private static Component getBarTitle(Component customText, ChatFormatting color) {
+        var gameName = Component.translatable("gameType.spleef.spleef").withStyle(ChatFormatting.BOLD);
+        return Component.empty().append(gameName).append(" - ").append(customText).withStyle(color);
     }
 }

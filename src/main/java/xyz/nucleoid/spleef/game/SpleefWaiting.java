@@ -1,11 +1,11 @@
 package xyz.nucleoid.spleef.game;
 
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.rule.GameRules;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.gamerules.GameRules;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.plasmid.api.game.GameOpenContext;
 import xyz.nucleoid.plasmid.api.game.GameOpenProcedure;
@@ -26,11 +26,11 @@ import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
 public final class SpleefWaiting {
     private final GameSpace gameSpace;
-    private final ServerWorld world;
+    private final ServerLevel world;
     private final SpleefMap map;
     private final SpleefConfig config;
 
-    private SpleefWaiting(GameSpace gameSpace, ServerWorld world, SpleefMap map, SpleefConfig config) {
+    private SpleefWaiting(GameSpace gameSpace, ServerLevel world, SpleefMap map, SpleefConfig config) {
         this.gameSpace = gameSpace;
         this.world = world;
         this.map = map;
@@ -83,12 +83,12 @@ public final class SpleefWaiting {
 
     private JoinAcceptorResult acceptPlayer(JoinAcceptor offer) {
         var spawn = this.map.getSpawn();
-        return offer.teleport(this.world, Vec3d.ofCenter(spawn))
+        return offer.teleport(this.world, Vec3.atCenterOf(spawn))
                 .thenRunForEach(player -> {
-                    player.changeGameMode(GameMode.ADVENTURE);
-                    player.addStatusEffect(new StatusEffectInstance(
-                            StatusEffects.NIGHT_VISION,
-                            StatusEffectInstance.INFINITE,
+                    player.setGameMode(GameType.ADVENTURE);
+                    player.addEffect(new MobEffectInstance(
+                            MobEffects.NIGHT_VISION,
+                            MobEffectInstance.INFINITE_DURATION,
                             1,
                             true,
                             false

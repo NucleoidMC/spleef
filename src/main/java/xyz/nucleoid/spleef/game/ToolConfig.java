@@ -6,16 +6,15 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.BlockPredicatesComponent;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.predicate.BlockPredicate;
-import net.minecraft.predicate.StatePredicate;
-import net.minecraft.registry.Registries;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.AdventureModePredicate;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.advancements.criterion.StatePropertiesPredicate;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.state.property.Property;
+import net.minecraft.world.level.block.state.properties.Property;
 import xyz.nucleoid.plasmid.api.util.ItemStackBuilder;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 
@@ -42,13 +41,13 @@ public record ToolConfig(ItemStack stack, int recipients) {
 
         toolBuilder.addEnchantment(server, Enchantments.EFFICIENCY, 2);
 
-        toolBuilder.set(DataComponentTypes.CAN_BREAK, new BlockPredicatesComponent(map.providedFloors.stream().map(x -> {
-                var state = StatePredicate.Builder.create();
+        toolBuilder.set(DataComponents.CAN_BREAK, new AdventureModePredicate(map.providedFloors.stream().map(x -> {
+                var state = StatePropertiesPredicate.Builder.properties();
 
                 for (var prop : x.getProperties()) {
-                    state = state.exactMatch(prop, ((Property) prop).name(x.get(prop)));
+                    state = state.hasProperty(prop, ((Property) prop).getName(x.getValue(prop)));
                 }
-                return BlockPredicate.Builder.create().blocks(Registries.BLOCK, x.getBlock()).state(state).build();
+                return net.minecraft.advancements.criterion.BlockPredicate.Builder.block().of(BuiltInRegistries.BLOCK, x.getBlock()).setProperties(state).build();
         }).toList()));
 
 
