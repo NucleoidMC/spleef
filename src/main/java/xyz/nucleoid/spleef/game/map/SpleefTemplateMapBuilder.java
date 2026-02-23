@@ -1,9 +1,9 @@
 package xyz.nucleoid.spleef.game.map;
 
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.core.BlockPos;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.MapTemplate;
 import xyz.nucleoid.map_templates.MapTemplateSerializer;
@@ -27,7 +27,7 @@ public final class SpleefTemplateMapBuilder {
         try {
             template = MapTemplateSerializer.loadFromResource(server, this.config.template());
         } catch (IOException e) {
-            throw new GameOpenException(Text.literal("Failed to find map template for: " + this.config.template()));
+            throw new GameOpenException(Component.literal("Failed to find map template for: " + this.config.template()));
         }
 
         final SpleefTemplateMapConfig.Levels levelsConfig = this.config.levels();
@@ -39,25 +39,23 @@ public final class SpleefTemplateMapBuilder {
             .toList();
 
         if (levels.isEmpty()) {
-            throw new GameOpenException(Text.literal("Found no levels in map template: " + this.config.template()));
+            throw new GameOpenException(Component.literal("Found no levels in map template: " + this.config.template()));
         }
 
-        int ceilingY = levels.get(levels.size() - 1).y() + 2;
+        int ceilingY = levels.getLast().y() + 2;
         var map = new SpleefMap(template, ceilingY);
         levels.forEach(map::addLevel);
 
-        map.providedFloors.add(levelsConfig.block().getDefaultState());
+        map.providedFloors.add(levelsConfig.block().defaultBlockState());
 
-        this.config.lava().ifPresent(lava -> {
-            map.setLava(lava.provider(), lava.startY());
-        });
+        this.config.lava().ifPresent(lava -> map.setLava(lava.provider(), lava.startY()));
 
         final BlockBounds spawnRegion = template.getMetadata().getFirstRegionBounds(this.config.spawnRegion());
         if (spawnRegion == null) {
-            throw new GameOpenException(Text.literal("Found no spawn region in map template: " + this.config.template()));
+            throw new GameOpenException(Component.literal("Found no spawn region in map template: " + this.config.template()));
         }
 
-        map.setSpawn(BlockPos.ofFloored(spawnRegion.center()));
+        map.setSpawn(BlockPos.containing(spawnRegion.center()));
 
         return map;
     }
@@ -70,7 +68,7 @@ public final class SpleefTemplateMapBuilder {
         int y = bounds.max().getY();
 
         SpleefShape.Builder shape = new SpleefShape.Builder(minX, minZ, maxX, maxZ);
-        for (BlockPos pos : BlockPos.iterate(minX, y, minZ, maxX, y, maxZ)) {
+        for (BlockPos pos : BlockPos.betweenClosed(minX, y, minZ, maxX, y, maxZ)) {
             final BlockState blockState = template.getBlockState(pos);
             if (levelBlock.test(blockState)) {
                 shape.putFill(pos.getX(), pos.getZ());

@@ -6,16 +6,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 import xyz.nucleoid.spleef.game.map.shape.ShapeCanvas;
 
 public record SierpinskiCarpetShapeRenderer(int order, Optional<Integer> wallOrder) implements MapShapeRenderer {
-    public static final MapCodec<SierpinskiCarpetShapeRenderer> CODEC = RecordCodecBuilder.mapCodec(instance -> {
-        return instance.group(
-                Codec.intRange(0, Integer.MAX_VALUE).fieldOf("order").forGetter(SierpinskiCarpetShapeRenderer::order),
-                Codec.intRange(0, Integer.MAX_VALUE).optionalFieldOf("wall_order").forGetter(SierpinskiCarpetShapeRenderer::wallOrder)
-        ).apply(instance, SierpinskiCarpetShapeRenderer::new);
-    });
+    public static final MapCodec<SierpinskiCarpetShapeRenderer> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            Codec.intRange(0, Integer.MAX_VALUE).fieldOf("order").forGetter(SierpinskiCarpetShapeRenderer::order),
+            Codec.intRange(0, Integer.MAX_VALUE).optionalFieldOf("wall_order").forGetter(SierpinskiCarpetShapeRenderer::wallOrder)
+    ).apply(instance, SierpinskiCarpetShapeRenderer::new));
 
     @Override
     public void renderTo(ShapeCanvas canvas) {
@@ -35,13 +33,12 @@ public record SierpinskiCarpetShapeRenderer(int order, Optional<Integer> wallOrd
 
     @Override
     public int getSpawnOffsetX() {
-        return MathHelper.ceil(Math.pow(3, this.order) / 6);
+        return Mth.ceil(Math.pow(3, this.order) / 6);
     }
 
     private boolean isEdge(int x, int z, int size) {
         if (x == -1 || z == -1) return true;
-        if (x == size || z == size) return true;
-        return false;
+        return x == size || z == size;
     }
 
     private boolean isWall(int x, int z) {
@@ -62,7 +59,7 @@ public record SierpinskiCarpetShapeRenderer(int order, Optional<Integer> wallOrd
     }
 
     private boolean isWallOrder(int order) {
-        return !this.wallOrder.isPresent() || (this.order - order) <= this.wallOrder.get();
+        return this.wallOrder.isEmpty() || (this.order - order) <= this.wallOrder.get();
     }
 
     @Override

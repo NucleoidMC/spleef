@@ -1,6 +1,6 @@
 package xyz.nucleoid.spleef.game.map;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import xyz.nucleoid.spleef.game.map.shape.SpleefShape;
 
 import java.util.function.Consumer;
@@ -11,7 +11,7 @@ public record SpleefLevel(SpleefShape shape, int y) {
     }
 
     public void forEach(Consumer<BlockPos> consumer) {
-        BlockPos.Mutable mutablePos = new BlockPos.Mutable();
+        BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
         this.shape.forEachFill((x, z) -> {
             mutablePos.set(x, this.y, z);
             consumer.accept(mutablePos);

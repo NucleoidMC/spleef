@@ -1,20 +1,20 @@
 package xyz.nucleoid.spleef.game;
 
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.projectile.ProjectileEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.BlockCollisionSpliterator;
-import net.minecraft.world.GameMode;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.BlockCollisions;
+import net.minecraft.world.level.GameType;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.plasmid.api.game.GameCloseReason;
@@ -36,7 +36,7 @@ import xyz.nucleoid.stimuli.event.projectile.ProjectileHitEvent;
 
 public final class SpleefActive {
     private final GameSpace gameSpace;
-    private final ServerWorld world;
+    private final ServerLevel world;
     private final SpleefMap map;
     private final SpleefConfig config;
 
@@ -50,7 +50,7 @@ public final class SpleefActive {
     private boolean hasEnded = false;
     private long closeTime = -1;
 
-    private SpleefActive(GameSpace gameSpace, ServerWorld world, SpleefMap map, SpleefConfig config, GlobalWidgets widgets) {
+    private SpleefActive(GameSpace gameSpace, ServerLevel world, SpleefMap map, SpleefConfig config, GlobalWidgets widgets) {
         this.gameSpace = gameSpace;
         this.world = world;
         this.map = map;
@@ -63,7 +63,7 @@ public final class SpleefActive {
         this.timerBar = SpleefTimerBar.create(widgets);
     }
 
-    public static void open(GameSpace gameSpace, ServerWorld world, SpleefMap map, SpleefConfig config) {
+    public static void open(GameSpace gameSpace, ServerLevel world, SpleefMap map, SpleefConfig config) {
         gameSpace.setActivity(activity -> {
             var widgets = GlobalWidgets.addTo(activity);
 
@@ -98,8 +98,8 @@ public final class SpleefActive {
 
     private JoinAcceptorResult acceptPlayer(JoinAcceptor offer) {
         var spawn = this.map.getSpawn();
-        return offer.teleport(this.world, Vec3d.ofCenter(spawn))
-                .thenRunForEach(player -> player.changeGameMode(GameMode.SPECTATOR));
+        return offer.teleport(this.world, Vec3.atCenterOf(spawn))
+                .thenRunForEach(player -> player.setGameMode(GameType.SPECTATOR));
     }
 
     private void onEnable() {
@@ -115,12 +115,12 @@ public final class SpleefActive {
         }
 
         for (var player : this.gameSpace.getPlayers().spectators()) {
-            player.changeGameMode(GameMode.SPECTATOR);
+            player.setGameMode(GameType.SPECTATOR);
         }
     }
 
     private void tick() {
-        long time = this.world.getTime();
+        long time = this.world.getGameTime();
 
         if (this.closeTime > 0) {
             this.tickClosing(this.gameSpace, time);
@@ -134,9 +134,9 @@ public final class SpleefActive {
                 if (player.isSpectator()) continue;
 
                 var boundingBox = player.getBoundingBox();
-                var box = new Box(boundingBox.minX, boundingBox.minY - MathHelper.EPSILON, boundingBox.minZ, boundingBox.maxX, boundingBox.minY, boundingBox.maxZ);
+                var box = new AABB(boundingBox.minX, boundingBox.minY - Mth.EPSILON, boundingBox.minZ, boundingBox.maxX, boundingBox.minY, boundingBox.maxZ);
 
-                var collisions = new BlockCollisionSpliterator<>(player.getEntityWorld(), player, box, false, (pos, voxelShape) -> pos);
+                var collisions = new BlockCollisions<>(player.level(), player, box, false, (pos, voxelShape) -> pos);
 
                 while (collisions.hasNext()) {
                     var pos = collisions.next();
@@ -194,20 +194,20 @@ public final class SpleefActive {
 
         for (var player : this.gameSpace.getPlayers()) {
             if (player.isSpectator()) continue;
-            if (player.getInventory().count(projectileStack.getItem()) >= projectileConfig.maximum()) continue;
+            if (player.getInventory().countItem(projectileStack.getItem()) >= projectileConfig.maximum()) continue;
 
-            player.getInventory().insertStack(projectileStack.copy());
-            player.playSound(SoundEvents.ENTITY_ITEM_PICKUP, 1, 1);
+            player.getInventory().add(projectileStack.copy());
+            player.playSound(SoundEvents.ITEM_PICKUP, 1, 1);
         }
     }
 
     private void breakFloorBlock(BlockPos pos) {
         if (this.map.providedFloors.contains(this.world.getBlockState(pos))) {
-            this.world.breakBlock(pos, false);
+            this.world.destroyBlock(pos, false);
         }
     }
 
-    private EventResult onBlockHit(ProjectileEntity entity, BlockHitResult hitResult) {
+    private EventResult onBlockHit(Projectile entity, BlockHitResult hitResult) {
         var projectiles = this.config.projectile();
         if (projectiles == null) return EventResult.DENY;
 
@@ -229,7 +229,7 @@ public final class SpleefActive {
                 if (distance >= radiusSquared) continue;
                 if (distance < innerRadiusSquared && innerRadius > 0) continue;
 
-                this.breakFloorBlock(pos.add(breakPos));
+                this.breakFloorBlock(pos.offset(breakPos));
             }
         }
 
@@ -241,19 +241,19 @@ public final class SpleefActive {
 
         hasEnded = true;
 
-        Text message;
+        Component message;
         if (winningPlayer != null) {
-            message = Text.translatable("text.spleef.win", winningPlayer.getDisplayName()).formatted(Formatting.GOLD);
+            message = Component.translatable("text.spleef.win", winningPlayer.getDisplayName()).withStyle(ChatFormatting.GOLD);
         } else {
-            message = Text.translatable("text.spleef.no_winners").formatted(Formatting.GOLD);
+            message = Component.translatable("text.spleef.no_winners").withStyle(ChatFormatting.GOLD);
         }
 
         var players = this.gameSpace.getPlayers();
         players.sendMessage(message);
-        players.playSound(SoundEvents.ENTITY_VILLAGER_YES);
+        players.playSound(SoundEvents.VILLAGER_YES);
     }
 
-    private EventResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
+    private EventResult onPlayerDamage(ServerPlayer player, DamageSource source, float amount) {
         if (!player.isSpectator() && isEliminatingSource(source) && !hasEnded) {
             this.eliminatePlayer(player);
         }
@@ -261,54 +261,54 @@ public final class SpleefActive {
     }
 
     private static boolean isEliminatingSource(final DamageSource source) {
-        return source.isIn(Spleef.ELIMINATES_PLAYERS);
+        return source.is(Spleef.ELIMINATES_PLAYERS);
     }
 
-    private EventResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+    private EventResult onPlayerDeath(ServerPlayer player, DamageSource source) {
         if (!player.isSpectator()) {
             this.eliminatePlayer(player);
         }
         return EventResult.DENY;
     }
 
-    private void spawnParticipant(ServerPlayerEntity player) {
-        player.changeGameMode(GameMode.ADVENTURE);
-        player.getInventory().clear();
+    private void spawnParticipant(ServerPlayer player) {
+        player.setGameMode(GameType.ADVENTURE);
+        player.getInventory().clearContent();
 
         this.config.attributeModifiers().applyTo(player);
     }
 
-    private void giveTool(ServerPlayerEntity player) {
+    private void giveTool(ServerPlayer player) {
         if (player != null) {
-            ItemStack stack = this.config.tool().createStack(player.getEntityWorld().getServer(), this.map);
-            player.getInventory().insertStack(stack);
+            ItemStack stack = this.config.tool().createStack(player.level().getServer(), this.map);
+            player.getInventory().add(stack);
 
             this.toolRecipients.add(player);
         }
     }
 
-    private void removePlayer(ServerPlayerEntity player) {
+    private void removePlayer(ServerPlayer player) {
         if (this.toolRecipients.contains(player)) {
             this.giveTool(this.getNextToolRecipient());
         }
     }
 
-    private void eliminatePlayer(ServerPlayerEntity player) {
-        var message = Text.translatable("text.spleef.eliminated", player.getDisplayName())
-                .formatted(Formatting.RED);
+    private void eliminatePlayer(ServerPlayer player) {
+        var message = Component.translatable("text.spleef.eliminated", player.getDisplayName())
+                .withStyle(ChatFormatting.RED);
 
         var players = this.gameSpace.getPlayers();
         players.sendMessage(message);
-        players.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP);
+        players.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP);
 
-        player.changeGameMode(GameMode.SPECTATOR);
+        player.setGameMode(GameType.SPECTATOR);
 
         if (this.toolRecipients.contains(player)) {
             this.giveTool(this.getNextToolRecipient());
         }
     }
 
-    private ServerPlayerEntity getNextToolRecipient() {
+    private ServerPlayer getNextToolRecipient() {
         for (var player : this.gameSpace.getPlayers()) {
             if (!player.isSpectator() && !this.toolRecipients.contains(player)) {
                 return player;
@@ -324,7 +324,7 @@ public final class SpleefActive {
             return WinResult.no();
         }
 
-        ServerPlayerEntity winningPlayer = null;
+        ServerPlayer winningPlayer = null;
 
         for (var player : this.gameSpace.getPlayers()) {
             if (!player.isSpectator()) {
@@ -340,12 +340,12 @@ public final class SpleefActive {
         return WinResult.win(winningPlayer);
     }
 
-    record WinResult(@Nullable ServerPlayerEntity winningPlayer, boolean win) {
+    record WinResult(@Nullable ServerPlayer winningPlayer, boolean win) {
         static WinResult no() {
             return new WinResult(null, false);
         }
 
-        static WinResult win(ServerPlayerEntity player) {
+        static WinResult win(ServerPlayer player) {
             return new WinResult(player, true);
         }
     }

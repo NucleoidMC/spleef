@@ -2,7 +2,7 @@ package xyz.nucleoid.spleef.game.map;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 import java.util.Optional;
 
@@ -19,13 +19,11 @@ public record OptionalPos(
 ) {
     public static final OptionalPos EMPTY = new OptionalPos(Optional.empty(), Optional.empty(), Optional.empty());
 
-    public static final Codec<OptionalPos> CODEC = RecordCodecBuilder.create(instance -> {
-        return instance.group(
-                Codec.INT.optionalFieldOf("x").forGetter(OptionalPos::x),
-                Codec.INT.optionalFieldOf("y").forGetter(OptionalPos::y),
-                Codec.INT.optionalFieldOf("z").forGetter(OptionalPos::z)
-        ).apply(instance, OptionalPos::new);
-    });
+    public static final Codec<OptionalPos> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.INT.optionalFieldOf("x").forGetter(OptionalPos::x),
+            Codec.INT.optionalFieldOf("y").forGetter(OptionalPos::y),
+            Codec.INT.optionalFieldOf("z").forGetter(OptionalPos::z)
+    ).apply(instance, OptionalPos::new));
 
     public BlockPos apply(BlockPos pos) {
         return new BlockPos(

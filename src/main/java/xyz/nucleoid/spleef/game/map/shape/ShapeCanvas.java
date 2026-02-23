@@ -3,7 +3,7 @@ package xyz.nucleoid.spleef.game.map.shape;
 import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
 import it.unimi.dsi.fastutil.longs.Long2BooleanMaps;
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.level.ChunkPos;
 
 public final class ShapeCanvas {
     private final Long2BooleanMap points = new Long2BooleanOpenHashMap();
@@ -24,15 +24,15 @@ public final class ShapeCanvas {
         if (x > this.maxX) this.maxX = x;
         if (z > this.maxZ) this.maxZ = z;
 
-        this.points.put(ChunkPos.toLong(x, z), fill);
+        this.points.put(ChunkPos.asLong(x, z), fill);
     }
 
     public SpleefShape render() {
         var shape = new SpleefShape.Builder(this.minX, this.minZ, this.maxX, this.maxZ);
         for (var entry : Long2BooleanMaps.fastIterable(this.points)) {
             long pos = entry.getLongKey();
-            int x = ChunkPos.getPackedX(pos);
-            int z = ChunkPos.getPackedZ(pos);
+            int x = ChunkPos.getX(pos);
+            int z = ChunkPos.getZ(pos);
 
             if (entry.getBooleanValue()) {
                 shape.putFill(x, z);
