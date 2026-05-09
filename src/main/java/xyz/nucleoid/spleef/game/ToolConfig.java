@@ -8,6 +8,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.AdventureModePredicate;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -18,25 +19,25 @@ import net.minecraft.world.level.block.state.properties.Property;
 import xyz.nucleoid.plasmid.api.util.ItemStackBuilder;
 import xyz.nucleoid.spleef.game.map.SpleefMap;
 
-public record ToolConfig(ItemStack stack, int recipients) {
-    private static final ItemStack DEFAULT_STACK = new ItemStack(Items.DIAMOND_SHOVEL);
+public record ToolConfig(ItemStackTemplate stack, int recipients) {
+    private static final ItemStackTemplate DEFAULT_STACK = new ItemStackTemplate(Items.DIAMOND_SHOVEL);
     private static final int DEFAULT_RECIPIENTS = -1;
 
     public static final ToolConfig DEFAULT = new ToolConfig(DEFAULT_STACK, DEFAULT_RECIPIENTS);
 
     private static final Codec<ToolConfig> RECORD_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ItemStack.CODEC.optionalFieldOf("stack", DEFAULT_STACK).forGetter(ToolConfig::stack),
+            ItemStackTemplate.CODEC.optionalFieldOf("stack", DEFAULT_STACK).forGetter(ToolConfig::stack),
             Codec.INT.optionalFieldOf("recipients", DEFAULT_RECIPIENTS).forGetter(ToolConfig::recipients)
     ).apply(instance, ToolConfig::new));
 
-    public static final Codec<ToolConfig> CODEC = Codec.either(ItemStack.CODEC, RECORD_CODEC).xmap(either -> either.map(stack -> new ToolConfig(stack, DEFAULT_RECIPIENTS), Function.identity()), Either::right);
+    public static final Codec<ToolConfig> CODEC = Codec.either(ItemStackTemplate.CODEC, RECORD_CODEC).xmap(either -> either.map(stack -> new ToolConfig(stack, DEFAULT_RECIPIENTS), Function.identity()), Either::right);
 
     public boolean shouldReceiveTool(int index) {
         return this.recipients == DEFAULT_RECIPIENTS || index < this.recipients;
     }
 
     public ItemStack createStack(MinecraftServer server, SpleefMap map) {
-        var toolBuilder = ItemStackBuilder.of(this.stack())
+        var toolBuilder = ItemStackBuilder.of(this.stack().create())
                 .setUnbreakable();
 
         toolBuilder.addEnchantment(server, Enchantments.EFFICIENCY, 2);

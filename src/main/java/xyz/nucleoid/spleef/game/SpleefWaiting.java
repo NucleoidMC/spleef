@@ -1,12 +1,20 @@
 package xyz.nucleoid.spleef.game;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.clock.ClockState;
+import net.minecraft.world.clock.PackedClockStates;
+import net.minecraft.world.clock.WorldClock;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.gamerules.GameRules;
-import xyz.nucleoid.fantasy.RuntimeWorldConfig;
+import xyz.nucleoid.fantasy.Fantasy;
+import xyz.nucleoid.fantasy.RuntimeLevelConfig;
 import xyz.nucleoid.plasmid.api.game.GameOpenContext;
 import xyz.nucleoid.plasmid.api.game.GameOpenProcedure;
 import xyz.nucleoid.plasmid.api.game.GameResult;
@@ -23,6 +31,8 @@ import xyz.nucleoid.spleef.game.map.SpleefTemplateMapBuilder;
 import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
+
+import java.util.Map;
 
 public final class SpleefWaiting {
     private final GameSpace gameSpace;
@@ -50,12 +60,14 @@ public final class SpleefWaiting {
             }
         );
 
-        var worldConfig = new RuntimeWorldConfig()
+        Holder<WorldClock> clock = context.server().registryAccess().getOrThrow(ResourceKey.create(Registries.WORLD_CLOCK, Identifier.fromNamespaceAndPath(Fantasy.ID, "default")));
+
+        var worldConfig = new RuntimeLevelConfig()
                 .setGameRule(GameRules.LAVA_SOURCE_CONVERSION, true)
                 .setGenerator(map.asGenerator(context.server()))
-                .setTimeOfDay(config.timeOfDay());
+                .setClockManagerConstructor(new PackedClockStates(Map.of(clock, new ClockState(config.timeOfDay(), 0, 1, true))));
 
-        return context.openWithWorld(worldConfig, (game, world) -> {
+        return context.openWithLevel(worldConfig, (game, world) -> {
             GameWaitingLobby.addTo(game, config.players());
 
             var waiting = new SpleefWaiting(game.getGameSpace(), world, map, config);

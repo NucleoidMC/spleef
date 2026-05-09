@@ -24,7 +24,7 @@ public final class ShapeCanvas {
         if (x > this.maxX) this.maxX = x;
         if (z > this.maxZ) this.maxZ = z;
 
-        this.points.put(ChunkPos.asLong(x, z), fill);
+        this.points.put(ChunkPos.pack(x, z), fill);
     }
 
     public SpleefShape render() {

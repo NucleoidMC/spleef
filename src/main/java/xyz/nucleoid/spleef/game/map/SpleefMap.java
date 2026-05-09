@@ -14,7 +14,7 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.map_templates.MapTemplate;
-import xyz.nucleoid.plasmid.api.game.world.generator.TemplateChunkGenerator;
+import xyz.nucleoid.plasmid.api.game.level.generator.TemplateChunkGenerator;
 import xyz.nucleoid.spleef.game.LavaRiseConfig;
 
 import java.util.ArrayList;
@@ -155,14 +155,14 @@ public final class SpleefMap {
         int y = lavaHeight + this.lavaMinY;
 
         var mutablePos = new BlockPos.MutableBlockPos();
-        var random = world.random;
+        var random = world.getRandom();
 
         int levelIndex = this.getLevelBelow(y);
         var level = this.levels.get(levelIndex);
 
         level.forEach(pos -> {
             mutablePos.set(pos.getX(), y, pos.getZ());
-            world.setBlockAndUpdate(mutablePos, this.lavaProvider.getState(random, mutablePos));
+            world.setBlockAndUpdate(mutablePos, this.lavaProvider.getState(world, random, mutablePos));
         });
     }
 

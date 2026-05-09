@@ -38,7 +38,7 @@ public final class SpleefMapGenerator {
     }
 
     private void buildFromShape(MapTemplate template, SpleefMap map, SpleefShape shape, int baseHeight, int ceilingY) {
-        var random = RandomSource.createNewThreadLocalInstance();
+        var random = RandomSource.createThreadLocalInstance();
 
         var floor = new ShapePlacer(template, this.config.floorProvider(), random);
         var walls = new ShapePlacer(template, this.config.wallProvider(), random);

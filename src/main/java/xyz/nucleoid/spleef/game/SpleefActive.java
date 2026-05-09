@@ -194,9 +194,9 @@ public final class SpleefActive {
 
         for (var player : this.gameSpace.getPlayers()) {
             if (player.isSpectator()) continue;
-            if (player.getInventory().countItem(projectileStack.getItem()) >= projectileConfig.maximum()) continue;
+            if (player.getInventory().countItem(projectileStack.item().value()) >= projectileConfig.maximum()) continue;
 
-            player.getInventory().add(projectileStack.copy());
+            player.getInventory().add(projectileStack.create());
             player.playSound(SoundEvents.ITEM_PICKUP, 1, 1);
         }
     }

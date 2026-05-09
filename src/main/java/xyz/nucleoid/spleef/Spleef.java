@@ -8,6 +8,7 @@ import net.minecraft.resources.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import xyz.nucleoid.plasmid.api.game.GameType;
+import xyz.nucleoid.plasmid.api.game.GameTypes;
 import xyz.nucleoid.spleef.game.SpleefConfig;
 import xyz.nucleoid.spleef.game.SpleefWaiting;
 import xyz.nucleoid.spleef.game.map.shape.renderer.*;
@@ -21,7 +22,7 @@ public final class Spleef implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        GameType.register(
+        GameTypes.register(
                 Identifier.fromNamespaceAndPath(Spleef.ID, "spleef"),
                 SpleefConfig.CODEC,
                 SpleefWaiting::open
