@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.advancements.criterion.StatePropertiesPredicate;
+import net.minecraft.advancements.predicates.StatePropertiesPredicate;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.block.state.properties.Property;
@@ -48,7 +48,7 @@ public record ToolConfig(ItemStackTemplate stack, int recipients) {
                 for (var prop : x.getProperties()) {
                     state = state.hasProperty(prop, ((Property) prop).getName(x.getValue(prop)));
                 }
-                return net.minecraft.advancements.criterion.BlockPredicate.Builder.block().of(BuiltInRegistries.BLOCK, x.getBlock()).setProperties(state).build();
+                return net.minecraft.advancements.predicates.BlockPredicate.Builder.block().of(BuiltInRegistries.BLOCK, x.getBlock()).setProperties(state).build();
         }).toList()));
 
 
