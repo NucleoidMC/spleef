@@ -19,11 +19,11 @@ public record SpleefGeneratedMapConfig(
     public static final Codec<SpleefGeneratedMapConfig> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.INT.fieldOf("levels").forGetter(SpleefGeneratedMapConfig::levels),
             Codec.INT.fieldOf("level_height").forGetter(SpleefGeneratedMapConfig::levelHeight),
-            MoreCodecs.BLOCK_STATE_PROVIDER.optionalFieldOf("wall_provider", BlockStateProvider.simple(Blocks.STONE_BRICKS)).forGetter(SpleefGeneratedMapConfig::wallProvider),
-            MoreCodecs.BLOCK_STATE_PROVIDER.optionalFieldOf("floor_provider", BlockStateProvider.simple(Blocks.SNOW_BLOCK)).forGetter(SpleefGeneratedMapConfig::floorProvider),
-            MoreCodecs.BLOCK_STATE_PROVIDER.optionalFieldOf("ceiling_provider", BlockStateProvider.simple(Blocks.BARRIER)).forGetter(SpleefGeneratedMapConfig::ceilingProvider),
+            MoreCodecs.BLOCK_STATE_PROVIDER.optionalFieldOf("wall_provider", BlockStateProvider.of(Blocks.STONE_BRICKS)).forGetter(SpleefGeneratedMapConfig::wallProvider),
+            MoreCodecs.BLOCK_STATE_PROVIDER.optionalFieldOf("floor_provider", BlockStateProvider.of(Blocks.SNOW_BLOCK)).forGetter(SpleefGeneratedMapConfig::floorProvider),
+            MoreCodecs.BLOCK_STATE_PROVIDER.optionalFieldOf("ceiling_provider", BlockStateProvider.of(Blocks.BARRIER)).forGetter(SpleefGeneratedMapConfig::ceilingProvider),
             MapShapeRenderer.REGISTRY_CODEC.fieldOf("shape").forGetter(SpleefGeneratedMapConfig::shape),
-            MoreCodecs.BLOCK_STATE_PROVIDER.optionalFieldOf("lava_provider", BlockStateProvider.simple(Blocks.LAVA)).forGetter(SpleefGeneratedMapConfig::lavaProvider),
+            MoreCodecs.BLOCK_STATE_PROVIDER.optionalFieldOf("lava_provider", BlockStateProvider.of(Blocks.LAVA)).forGetter(SpleefGeneratedMapConfig::lavaProvider),
             OptionalPos.CODEC.optionalFieldOf("spawn", OptionalPos.EMPTY).forGetter(SpleefGeneratedMapConfig::spawn)
     ).apply(i, SpleefGeneratedMapConfig::new));
 }

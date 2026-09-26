@@ -34,7 +34,7 @@ public record SpleefTemplateMapConfig(
     public record Lava(int startY, BlockStateProvider provider) {
         public static final Codec<Lava> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.INT.fieldOf("start_y").forGetter(Lava::startY),
-            MoreCodecs.BLOCK_STATE_PROVIDER.optionalFieldOf("lava_provider", BlockStateProvider.simple(Blocks.LAVA)).forGetter(Lava::provider)
+            MoreCodecs.BLOCK_STATE_PROVIDER.optionalFieldOf("lava_provider", BlockStateProvider.of(Blocks.LAVA)).forGetter(Lava::provider)
         ).apply(i, Lava::new));
     }
 }
