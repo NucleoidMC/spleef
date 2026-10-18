@@ -22,7 +22,7 @@ public record SpleefConfig(
         int decay,
         int timeOfDay,
         boolean unstableTnt
-) {
+) { //
     public static final MapCodec<SpleefConfig> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
         Codec.xor(SpleefGeneratedMapConfig.CODEC, SpleefTemplateMapConfig.CODEC).fieldOf("map").forGetter(SpleefConfig::map),
         WaitingLobbyConfig.CODEC.fieldOf("players").forGetter(SpleefConfig::players),
